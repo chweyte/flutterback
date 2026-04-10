@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "243891896311",
+    "project_id": "flutteback",
+    "storage_bucket": "flutteback.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243891896311:android:dc4144af9571eaf6ce78f2",
+        "android_client_info": {
+          "package_name": "com.example.login"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKBYzb18a-axEmkv60wOfTj2SiUqcg6_s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
