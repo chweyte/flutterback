@@ -62,9 +62,10 @@ class LandingScreen extends StatelessWidget {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         SlidePageRoute(page: LoginScreen()),
+                        (route) => false,
                       );
                     },
                     style: ElevatedButton.styleFrom(

@@ -1,18 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/route_transitions.dart';
+import '../landing_screen.dart';
 
 class CommercantHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Espace Commerçant')),
+      backgroundColor: const Color(0xFFF7F7F9),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Espace Commerçant',
+           style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Color(0xFF1E293B)),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(context, SlidePageRoute(page: LandingScreen()));
+            },
+          )
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.store, size: 80, color: Colors.orange),
-            SizedBox(height: 20),
-            Text('Bienvenue Commerçant !',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.store, size: 80, color: Colors.orange),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Bienvenue Commerçant !',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
           ],
         ),
       ),

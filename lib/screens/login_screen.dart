@@ -7,7 +7,10 @@ import 'client/signup_screen.dart';
 import 'client/client_home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
+import 'dart:async';
 import '../services/route_transitions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:toastification/toastification.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -17,12 +20,63 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _resetEmailController = TextEditingController(); // Moved to class level
   final AuthService _auth = AuthService();
   bool _loading = false;
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  Timer? _resendTimer;
+  int _resendCooldown = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    super.initState();
+    _emailController.addListener(_onInputChanged);
+    _passwordController.addListener(_onInputChanged);
+    _resetEmailController.addListener(_onInputChanged);
+  }
+
+  void _onInputChanged() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _emailController.removeListener(_onInputChanged);
+    _passwordController.removeListener(_onInputChanged);
+    _resetEmailController.removeListener(_onInputChanged);
+    _emailController.dispose();
+    _passwordController.dispose();
+    _resetEmailController.dispose();
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  void _showToast(String message, ToastificationType type) {
+    toastification.show(
+      context: context,
+      type: type,
+      style: ToastificationStyle.flatColored,
+      title: Text(message, style: const TextStyle(fontWeight: FontWeight.w600)),
+      autoCloseDuration: const Duration(seconds: 4),
+      animationDuration: const Duration(milliseconds: 300),
+      alignment: Alignment.topRight,
+    );
+  }
+
+  String get _formattedCooldown {
+    int minutes = _resendCooldown ~/ 60;
+    int seconds = _resendCooldown % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   Future<void> _login() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _loading = true);
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -49,22 +103,449 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     // 3. Check Client
-    String? uid = await _auth.loginClient(email, password);
-    if (uid != null) {
-      Navigator.pushReplacement(context,
-          SlidePageRoute(page: ClientHome()));
-      return;
+    try {
+      String? uid = await _auth.loginClient(email, password);
+      if (uid != null) {
+        Navigator.pushReplacement(context,
+            SlidePageRoute(page: ClientHome()));
+        return;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'unverified-email') {
+        setState(() => _loading = false);
+        _showVerificationBottomSheet();
+        return;
+      }
+    } catch (e) {
+      // Pour les autres erreurs, on laissera tomber dans l'erreur générique ci-dessous
     }
 
     // Si on arrive ici, rien n'a marché
-    _showError('Email ou mot de passe incorrect');
+    _showToast('Email ou mot de passe incorrect', ToastificationType.error);
     setState(() => _loading = false);
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    _showToast(msg, ToastificationType.error);
   }
+
+  void _showForgotPasswordBottomSheet() {
+    bool isSending = false;
+    bool isSent = false;
+    
+    _resendTimer?.cancel();
+    _resendCooldown = 0;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+                left: 24,
+                right: 24,
+                top: 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  if (!isSent) ...[
+                    const Text(
+                      'Reset Password',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Enter your email address and we will send you a password reset link.',
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Your email address',
+                      style: TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 50,
+                      child: TextField(
+                        controller: _resetEmailController,
+                        style: const TextStyle(color: Color(0xFF1E293B)),
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                          hintText: 'e.g. username@gmail.com',
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF94A3B8)),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F7F9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFF007AFF), width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: AnimatedBuilder(
+                        animation: _resetEmailController,
+                        builder: (context, child) {
+                          bool isDisabled = isSending || !_isValidEmail(_resetEmailController.text.trim());
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF007AFF).withOpacity(isDisabled ? 0.5 : 1.0),
+                                  const Color(0xFF0055FF).withOpacity(isDisabled ? 0.5 : 1.0)
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isDisabled ? null : () async {
+                                String email = _resetEmailController.text.trim();
+                                if (email.isEmpty) return;
+                                setBottomSheetState(() => isSending = true);
+                                try {
+                                  await _auth.resetPassword(email);
+                                  setBottomSheetState(() {
+                                    isSending = false;
+                                    isSent = true;
+                                    _resendCooldown = 300;
+                                  });
+                                  _showToast('Reset link sent!', ToastificationType.success);
+                                  _resendTimer?.cancel();
+                                  _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                                    setBottomSheetState(() {
+                                      if (_resendCooldown > 0) {
+                                        _resendCooldown--;
+                                      } else {
+                                        timer.cancel();
+                                      }
+                                    });
+                                  });
+                                } catch (e) {
+                                  setBottomSheetState(() => isSending = false);
+                                  _showToast('Error: ${e.toString()}', ToastificationType.error);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                disabledBackgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: isSending
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : const Text(
+                                      'Send Link',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          );
+                        }
+                      ),
+                    ),
+                  ] else ...[
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF007AFF).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.mark_email_unread_outlined, size: 48, color: Color(0xFF007AFF)),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Check your email',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'We sent a password reset link to your email.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF007AFF),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                                splashFactory: NoSplash.splashFactory,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: const Text(
+                                'Back to Login',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _resendCooldown > 0 ? null : () async {
+                              await _auth.resetPassword(_resetEmailController.text.trim());
+                              _showToast('Password reset link resent.', ToastificationType.success);
+                              setBottomSheetState(() {
+                                _resendCooldown = 300;
+                              });
+                              _resendTimer?.cancel();
+                              _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                                setBottomSheetState(() {
+                                  if (_resendCooldown > 0) {
+                                    _resendCooldown--;
+                                  } else {
+                                    timer.cancel();
+                                  }
+                                });
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                _resendCooldown > 0 
+                                    ? 'Resend link ($_formattedCooldown)' 
+                                    : 'Resend link',
+                                style: TextStyle(
+                                  color: _resendCooldown > 0 ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showVerificationBottomSheet() {
+    bool isChecking = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 24,
+                right: 24,
+                top: 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF007AFF).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.mark_email_unread_outlined, size: 48, color: Color(0xFF007AFF)),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Verify your email',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'We sent a verification link to your email. Please click the link to verify your account and then continue.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: isChecking
+                          ? null
+                          : () async {
+                              setBottomSheetState(() => isChecking = true);
+                              User? user = FirebaseAuth.instance.currentUser;
+                              await user?.reload();
+                              user = FirebaseAuth.instance.currentUser;
+
+                              if (user != null && user.emailVerified) {
+                                await AuthService().ensureClientProfileExists(user.uid, user.email ?? '');
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                  this.context,
+                                  SlidePageRoute(page: ClientHome()),
+                                );
+                                _showToast('Email verified successfully!', ToastificationType.success);
+                              } else {
+                                setBottomSheetState(() => isChecking = false);
+                                _showToast('Email not verified yet. Please check your inbox.', ToastificationType.warning);
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF007AFF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                        splashFactory: NoSplash.splashFactory,
+                        shadowColor: Colors.transparent,
+                      ),
+                      child: isChecking
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Text(
+                              "I've verified my email",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: (_resendCooldown > 0 || isChecking) ? null : () {
+                      FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                      _showToast('Verification link resent.', ToastificationType.info);
+                      setBottomSheetState(() {
+                        _resendCooldown = 300; // 5 minutes
+                      });
+                      _resendTimer?.cancel();
+                      _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                        setBottomSheetState(() {
+                          if (_resendCooldown > 0) {
+                            _resendCooldown--;
+                          } else {
+                            timer.cancel();
+                          }
+                        });
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Text(
+                        _resendCooldown > 0 
+                            ? 'Resend link ($_formattedCooldown)' 
+                            : 'Resend link',
+                        style: TextStyle(
+                          color: _resendCooldown > 0 ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -87,36 +568,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(right: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.chevron_left, color: Color(0xFF1E293B)),
-                                onPressed: () {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ),
-                            const Expanded(
-                              child: Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                  height: 1.2,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                            height: 1.2,
+                          ),
                         ),
                         const SizedBox(height: 30),
                         
@@ -135,6 +594,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                               hintText: 'e.g. username@gmail.com',
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                              prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF94A3B8)),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -170,6 +630,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                               hintText: '••••••••••••',
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                              prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF94A3B8)),
                               filled: true,
                               fillColor: Colors.white,
                               suffixIcon: GestureDetector(
@@ -228,7 +689,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: _showForgotPasswordBottomSheet,
                               style: TextButton.styleFrom(
                                 splashFactory: NoSplash.splashFactory,
                                 padding: EdgeInsets.zero,
@@ -245,12 +706,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF007AFF).withOpacity(_loading ? 0.7 : 1.0),
-                                  const Color(0xFF0055FF).withOpacity(_loading ? 0.7 : 1.0)
+                                  const Color(0xFF007AFF).withOpacity((_loading || !_isValidEmail(_emailController.text.trim()) || _passwordController.text.isEmpty) ? 0.5 : 1.0),
+                                  const Color(0xFF0055FF).withOpacity((_loading || !_isValidEmail(_emailController.text.trim()) || _passwordController.text.isEmpty) ? 0.5 : 1.0)
                                 ],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
@@ -258,10 +720,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ElevatedButton(
-                              onPressed: _loading ? null : _login,
+                              onPressed: (_loading || !_isValidEmail(_emailController.text.trim()) || _passwordController.text.isEmpty) ? null : _login,
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: Colors.transparent,
+                                disabledBackgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

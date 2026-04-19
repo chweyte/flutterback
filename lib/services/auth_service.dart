@@ -54,12 +54,10 @@ class AuthService {
         email: email,
         password: password,
       );
-      // Stocker dans Firestore
-      await _db.collection('clients').doc(result.user!.uid).set({
-        'email': email,
-        'telephone': telephone,
-        'createdAt': DateTime.now(),
-      });
+      
+      // Envoi de l'email de vérification
+      await result.user!.sendEmailVerification();
+
       return result.user!.uid;
     } catch (e) {
       print('=== ERREUR INSCRIPTION === : $e');
@@ -74,9 +72,43 @@ class AuthService {
         email: email,
         password: password,
       );
+      if (!result.user!.emailVerified) {
+        throw FirebaseAuthException(
+          code: 'unverified-email', 
+          message: 'Veuillez vérifier votre email via le lien envoyé avant de vous connecter.'
+        );
+      }
+
+      // S'assurer que le profil Firestore existe
+      await ensureClientProfileExists(result.user!.uid, email);
+
       return result.user!.uid;
     } catch (e) {
+      if (e is FirebaseAuthException && e.code == 'unverified-email') {
+        throw e;
+      }
       return null;
+    }
+  }
+
+  // Réinitialisation mot de passe
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Création du profil Firebase au moment de la vérification
+  Future<void> ensureClientProfileExists(String uid, String email) async {
+    var doc = await _db.collection('clients').doc(uid).get();
+    if (!doc.exists) {
+      await _db.collection('clients').doc(uid).set({
+        'email': email,
+        'telephone': '',
+        'createdAt': DateTime.now(),
+      });
     }
   }
 }
