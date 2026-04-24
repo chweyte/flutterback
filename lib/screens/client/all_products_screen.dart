@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../core/models/product_model.dart';
+import '../../core/theme/app_colors.dart';
+import '../../widgets/product_card_widget.dart';
+
+class AllProductsScreen extends StatefulWidget {
+  const AllProductsScreen({super.key});
+
+  @override
+  State<AllProductsScreen> createState() => _AllProductsScreenState();
+}
+
+class _AllProductsScreenState extends State<AllProductsScreen> {
+  String _selectedCategory = 'all';
+
+  List<ProductModel> get _filtered {
+    if (_selectedCategory == 'all') return allProducts;
+    return allProducts.where((p) => p.category == _selectedCategory).toList();
+  }
+
+  // Unique categories from allProducts
+  List<String> get _categories {
+    final seen = <String>{};
+    final result = <String>['all'];
+    for (final p in allProducts) {
+      if (seen.add(p.category)) result.add(p.category);
+    }
+    return result;
+  }
+
+  String _categoryLabel(String id) {
+    if (id == 'all') return 'all'.tr();
+    return 'categories_list.$id'.tr();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ─────────────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 38.r,
+                      height: 38.r,
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 16.r, color: AppColors.textPrimary),
+                    ),
+                  ),
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: Text(
+                      'explore_more'.tr(),
+                      style: TextStyle(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${_filtered.length} produits',
+                    style: TextStyle(
+                        fontSize: 12.sp, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Category filter chips ───────────────────────────────────
+            SizedBox(
+              height: 40.h,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.only(left: 20.w, right: 12.w),
+                itemCount: _categories.length,
+                itemBuilder: (ctx, i) {
+                  final cat = _categories[i];
+                  final selected = _selectedCategory == cat;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedCategory = cat),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      margin: EdgeInsets.only(right: 8.w),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 14.w, vertical: 8.h),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(20.r),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        _categoryLabel(cat),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: selected
+                              ? Colors.white
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // ── Product grid ────────────────────────────────────────────
+            Expanded(
+              child: _filtered.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Aucun produit dans cette catégorie',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 14.sp),
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 20.w, vertical: 4.h),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12.w,
+                        mainAxisSpacing: 12.h,
+                        childAspectRatio: 0.78,
+                      ),
+                      itemCount: _filtered.length,
+                      itemBuilder: (ctx, i) =>
+                          ProductCardWidget(product: _filtered[i]),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

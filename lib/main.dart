@@ -11,12 +11,10 @@ import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize easy_localization before Firebase
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
-    // Wrap app with EasyLocalization to enable multi-language + RTL support
     EasyLocalization(
       supportedLocales: const [Locale('fr'), Locale('ar'), Locale('en')],
       path: 'assets/translations',
@@ -26,8 +24,31 @@ void main() async {
   );
 }
 
+// ── Global scroll behavior ────────────────────────────────────────────────────
+// Appliqué à toute l'app : supprime l'effet élastique/rebond sur tous les
+// widgets scrollables (ListView, CustomScrollView, SingleChildScrollView…)
+// sans avoir à répéter physics: sur chaque widget.
+// Étend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
+// configuration des gestes tactiles Android. On remplace juste la physique
+// pour supprimer le rebond élastique et l'indicateur de surscroll.
+class _NoOverscrollBehavior extends MaterialScrollBehavior {
+  const _NoOverscrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const ClampingScrollPhysics();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) =>
+      child;
+}
+
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +62,11 @@ class MyApp extends StatelessWidget {
             title: 'app_name'.tr(),
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
-            // Pass locale + delegates from easy_localization
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
             locale: context.locale,
+            // Fix global : ClampingScrollPhysics pour toute l'application
+            scrollBehavior: const _NoOverscrollBehavior(),
             home: const AuthWrapper(),
           ),
         );
@@ -54,7 +76,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({Key? key}) : super(key: key);
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {

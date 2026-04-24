@@ -1,0 +1,167 @@
+class ProductModel {
+  final String id;
+  final String name;
+  final String price;
+  final int priceValue;
+  final bool isDark;
+  final String? imageUrl;
+  final String category;
+
+  const ProductModel({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.priceValue,
+    this.isDark = false,
+    this.imageUrl,
+    required this.category,
+  });
+}
+
+// Catalogue de produits avec images Unsplash (libres de droits)
+const List<ProductModel> allProducts = [
+  ProductModel(
+    id: '1',
+    name: 'Parfum Oud Rose',
+    price: '1 200 MRU',
+    priceValue: 1200,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80',
+    category: 'perfumes',
+  ),
+  ProductModel(
+    id: '2',
+    name: 'Melhfa Élégante',
+    price: '800 MRU',
+    priceValue: 800,
+    isDark: true,
+    imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&q=80',
+    category: 'melhfa',
+  ),
+  ProductModel(
+    id: '3',
+    name: 'Daraa Premium',
+    price: '950 MRU',
+    priceValue: 950,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80',
+    category: 'daraa',
+  ),
+  ProductModel(
+    id: '4',
+    name: 'Sac Cuir Artisanal',
+    price: '2 500 MRU',
+    priceValue: 2500,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80',
+    category: 'bags',
+  ),
+  ProductModel(
+    id: '5',
+    name: 'Palette Maquillage',
+    price: '650 MRU',
+    priceValue: 650,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400&q=80',
+    category: 'makeup',
+  ),
+  ProductModel(
+    id: '6',
+    name: 'Sérum Visage',
+    price: '480 MRU',
+    priceValue: 480,
+    isDark: true,
+    imageUrl: 'https://images.unsplash.com/photo-1556228720-da424861bd16?w=400&q=80',
+    category: 'skincare',
+  ),
+  ProductModel(
+    id: '7',
+    name: 'Sneakers Sport',
+    price: '1 800 MRU',
+    priceValue: 1800,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    category: 'shoes',
+  ),
+  ProductModel(
+    id: '8',
+    name: 'T-Shirt Premium',
+    price: '350 MRU',
+    priceValue: 350,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80',
+    category: 'clothing',
+  ),
+  ProductModel(
+    id: '9',
+    name: 'Jean Slim Fit',
+    price: '750 MRU',
+    priceValue: 750,
+    isDark: true,
+    imageUrl: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80',
+    category: 'clothing',
+  ),
+  ProductModel(
+    id: '10',
+    name: 'Bracelet Or 18K',
+    price: '5 000 MRU',
+    priceValue: 5000,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80',
+    category: 'jewelry',
+  ),
+  ProductModel(
+    id: '11',
+    name: 'Montre Classique',
+    price: '3 200 MRU',
+    priceValue: 3200,
+    isDark: true,
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',
+    category: 'watches',
+  ),
+  ProductModel(
+    id: '12',
+    name: 'iPhone Coque',
+    price: '180 MRU',
+    priceValue: 180,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&q=80',
+    category: 'phones',
+  ),
+  ProductModel(
+    id: '13',
+    name: 'Coussin Déco',
+    price: '290 MRU',
+    priceValue: 290,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
+    category: 'home_decor',
+  ),
+  ProductModel(
+    id: '14',
+    name: 'Balle de Football',
+    price: '420 MRU',
+    priceValue: 420,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&q=80',
+    category: 'sports',
+  ),
+  ProductModel(
+    id: '15',
+    name: 'Rouge à Lèvres',
+    price: '320 MRU',
+    priceValue: 320,
+    isDark: true,
+    imageUrl: 'https://images.unsplash.com/photo-1586495777744-4e6232c8ec14?w=400&q=80',
+    category: 'makeup',
+  ),
+  ProductModel(
+    id: '16',
+    name: 'Crème Hydratante',
+    price: '380 MRU',
+    priceValue: 380,
+    isDark: false,
+    imageUrl: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=80',
+    category: 'skincare',
+  ),
+];

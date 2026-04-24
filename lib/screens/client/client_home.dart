@@ -4,11 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/models/category_model.dart';
+import '../../core/models/product_model.dart';
 import '../../widgets/product_card_widget.dart';
 import '../../widgets/category_chip_widget.dart';
 import '../../widgets/bottom_nav_widget.dart';
 import '../../services/route_transitions.dart';
 import '../settings/settings_screen.dart';
+import 'search_screen.dart';
+import 'favorites_screen.dart';
+import 'notifications_screen.dart';
+import 'cart_screen.dart';
+import 'all_categories_screen.dart';
+import 'all_products_screen.dart';
 
 class ClientHome extends StatefulWidget {
   const ClientHome({Key? key}) : super(key: key);
@@ -20,48 +27,64 @@ class ClientHome extends StatefulWidget {
 class _ClientHomeState extends State<ClientHome> {
   int _selectedCategory = 0;
   int _navIndex = 0;
-  int _cartCount = 0;
-
-  // Sample products – replace with Firestore data in production.
-  static const _products = [
-    {'name': 'Parfum Oud Rose',    'price': '1 200 MRU', 'dark': false},
-    {'name': 'Melhfa Élégante',    'price': '800 MRU',   'dark': true},
-    {'name': 'Daraa Premium',      'price': '950 MRU',   'dark': false},
-    {'name': 'Sac Cuir Artisanal', 'price': '2 500 MRU', 'dark': false},
-  ];
 
   String get _username {
     final u = FirebaseAuth.instance.currentUser;
     return u?.displayName ?? u?.email?.split('@').first ?? 'User';
   }
 
+  // Filter products by selected category (index 0 = "new_in" = show all)
+  List<ProductModel> get _visibleProducts {
+    if (_selectedCategory == 0) return allProducts;
+    final catId = appCategories[_selectedCategory].id;
+    return allProducts.where((p) => p.category == catId).toList();
+  }
+
   void _onNavTap(int i) {
     setState(() => _navIndex = i);
-    // Profile tab → Settings screen
-    if (i == 4) {
-      Navigator.push(context, SlidePageRoute(page: const SettingsScreen()))
-          .then((_) => setState(() => _navIndex = 0));
+    switch (i) {
+      case 1:
+        Navigator.push(context, SlidePageRoute(page: const SearchScreen()))
+            .then((_) => setState(() => _navIndex = 0));
+        break;
+      case 2:
+        Navigator.push(context, SlidePageRoute(page: const FavoritesScreen()))
+            .then((_) => setState(() => _navIndex = 0));
+        break;
+      case 3:
+        Navigator.push(
+                context, SlidePageRoute(page: const NotificationsScreen()))
+            .then((_) => setState(() => _navIndex = 0));
+        break;
+      case 4:
+        Navigator.push(context, SlidePageRoute(page: const CartScreen()))
+            .then((_) => setState(() => _navIndex = 0));
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final products = _visibleProducts;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Stack(
           children: [
-            // ── Scrollable content ─────────────────────────────────────
             CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
-                  child: _Header(username: _username, cartCount: _cartCount),
+                  child: _Header(username: _username),
                 ),
                 SliverToBoxAdapter(child: _SearchSection()),
                 SliverToBoxAdapter(
                   child: _CategoryRow(
                     selectedIndex: _selectedCategory,
                     onSelect: (i) => setState(() => _selectedCategory = i),
+                    onSeeAll: () => Navigator.push(
+                      context,
+                      SlidePageRoute(page: const AllCategoriesScreen()),
+                    ),
                   ),
                 ),
                 SliverPadding(
@@ -74,23 +97,23 @@ class _ClientHomeState extends State<ClientHome> {
                       childAspectRatio: 0.78,
                     ),
                     delegate: SliverChildBuilderDelegate(
-                      (ctx, i) => ProductCardWidget(
-                        name: _products[i]['name'] as String,
-                        price: _products[i]['price'] as String,
-                        isDark: _products[i]['dark'] as bool,
-                        onAddToCart: () => setState(() => _cartCount++),
-                      ),
-                      childCount: _products.length,
+                      (ctx, i) => ProductCardWidget(product: products[i]),
+                      childCount: products.length,
                     ),
                   ),
                 ),
-                SliverToBoxAdapter(child: _ExploreMoreButton()),
-                // Extra space so content is not hidden behind the floating nav
+                SliverToBoxAdapter(
+                  child: _ExploreMoreButton(
+                    onTap: () => Navigator.push(
+                      context,
+                      SlidePageRoute(page: const AllProductsScreen()),
+                    ),
+                  ),
+                ),
                 SliverToBoxAdapter(child: SizedBox(height: 90.h)),
               ],
             ),
 
-            // ── Floating bottom navigation bar ─────────────────────────
             Positioned(
               bottom: 0,
               left: 0,
@@ -98,7 +121,7 @@ class _ClientHomeState extends State<ClientHome> {
               child: BottomNavWidget(
                 currentIndex: _navIndex,
                 onTap: _onNavTap,
-                cartCount: _cartCount,
+                cartCount: 0,
               ),
             ),
           ],
@@ -109,14 +132,12 @@ class _ClientHomeState extends State<ClientHome> {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Header
+// Header  (no cart icon)
 // ────────────────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
   final String username;
-  final int cartCount;
-
-  const _Header({required this.username, required this.cartCount});
+  const _Header({required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -124,16 +145,21 @@ class _Header extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
       child: Row(
         children: [
-          // Avatar – initials
-          CircleAvatar(
-            radius: 20.r,
-            backgroundColor: AppColors.primary,
-            child: Text(
-              username.isNotEmpty ? username[0].toUpperCase() : 'U',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w700,
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              SlidePageRoute(page: const SettingsScreen()),
+            ),
+            child: CircleAvatar(
+              radius: 20.r,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                username.isNotEmpty ? username[0].toUpperCase() : 'U',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -161,14 +187,10 @@ class _Header extends StatelessWidget {
           _HeaderIconBtn(
             icon: Icons.notifications_none_rounded,
             hasBadge: true,
-            onTap: () {},
-          ),
-          SizedBox(width: 8.w),
-          _HeaderIconBtn(
-            icon: Icons.shopping_bag_outlined,
-            hasBadge: cartCount > 0,
-            badgeCount: cartCount,
-            onTap: () {},
+            onTap: () => Navigator.push(
+              context,
+              SlidePageRoute(page: const NotificationsScreen()),
+            ),
           ),
         ],
       ),
@@ -176,17 +198,14 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Circular icon button with optional red dot badge.
 class _HeaderIconBtn extends StatelessWidget {
   final IconData icon;
   final bool hasBadge;
-  final int badgeCount;
   final VoidCallback onTap;
 
   const _HeaderIconBtn({
     required this.icon,
     this.hasBadge = false,
-    this.badgeCount = 0,
     required this.onTap,
   });
 
@@ -215,15 +234,6 @@ class _HeaderIconBtn extends StatelessWidget {
                     color: AppColors.accent,
                     shape: BoxShape.circle,
                   ),
-                  child: badgeCount > 0
-                      ? Center(
-                          child: Text(
-                            '$badgeCount',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 4.sp),
-                          ),
-                        )
-                      : null,
                 ),
               ),
           ],
@@ -234,7 +244,7 @@ class _HeaderIconBtn extends StatelessWidget {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Search & title section
+// Search section
 // ────────────────────────────────────────────────────────────────────────────
 
 class _SearchSection extends StatelessWidget {
@@ -257,21 +267,19 @@ class _SearchSection extends StatelessWidget {
           SizedBox(height: 3.h),
           Text(
             'find_products'.tr(),
-            style: TextStyle(
-                fontSize: 15.sp, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 15.sp, color: AppColors.textSecondary),
           ),
           SizedBox(height: 14.h),
-          // Search bar
           Container(
             height: 48.h,
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(14.r),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0x0A000000),
+                  color: Color(0x0A000000),
                   blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
@@ -283,6 +291,11 @@ class _SearchSection extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: TextField(
+                    readOnly: true,
+                    onTap: () => Navigator.push(
+                      context,
+                      SlidePageRoute(page: const SearchScreen()),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'search_placeholder'.tr(),
                       hintStyle: TextStyle(
@@ -295,7 +308,6 @@ class _SearchSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Filter toggle button
                 Container(
                   margin: EdgeInsets.all(6.r),
                   padding: EdgeInsets.all(8.r),
@@ -316,14 +328,44 @@ class _SearchSection extends StatelessWidget {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Horizontal category chips
+// Category row  — with left/right arrow buttons
 // ────────────────────────────────────────────────────────────────────────────
 
-class _CategoryRow extends StatelessWidget {
+class _CategoryRow extends StatefulWidget {
   final int selectedIndex;
   final void Function(int) onSelect;
+  final VoidCallback onSeeAll;
 
-  const _CategoryRow({required this.selectedIndex, required this.onSelect});
+  const _CategoryRow({
+    required this.selectedIndex,
+    required this.onSelect,
+    required this.onSeeAll,
+  });
+
+  @override
+  State<_CategoryRow> createState() => _CategoryRowState();
+}
+
+class _CategoryRowState extends State<_CategoryRow> {
+  late final ScrollController _sc;
+
+  @override
+  void initState() {
+    super.initState();
+    _sc = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _sc.dispose();
+    super.dispose();
+  }
+
+  void _scrollBy(double delta) {
+    final target = (_sc.offset + delta).clamp(0.0, _sc.position.maxScrollExtent);
+    _sc.animateTo(target,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -343,27 +385,73 @@ class _CategoryRow extends StatelessWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Text(
-                'see_all'.tr(),
-                style: TextStyle(
-                    fontSize: 13.sp, color: AppColors.textSecondary),
+              GestureDetector(
+                onTap: widget.onSeeAll,
+                child: Text(
+                  'see_all'.tr(),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
         ),
         SizedBox(height: 10.h),
-        SizedBox(
-          height: 40.h,
-          child: ListView.builder(
-            padding: EdgeInsets.only(left: 20.w),
-            scrollDirection: Axis.horizontal,
-            itemCount: appCategories.length,
-            itemBuilder: (ctx, i) => CategoryChipWidget(
-              category: appCategories[i],
-              isSelected: selectedIndex == i,
-              onTap: () => onSelect(i),
+        Row(
+          children: [
+            // Left arrow
+            GestureDetector(
+              onTap: () => _scrollBy(-160),
+              child: Container(
+                margin: EdgeInsets.only(left: 8.w, right: 4.w),
+                width: 30.r,
+                height: 30.r,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chevron_left_rounded,
+                    size: 18.r, color: AppColors.textPrimary),
+              ),
             ),
-          ),
+
+            // Scrollable chips
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _sc,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    appCategories.length,
+                    (i) => CategoryChipWidget(
+                      category: appCategories[i],
+                      isSelected: widget.selectedIndex == i,
+                      onTap: () => widget.onSelect(i),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Right arrow
+            GestureDetector(
+              onTap: () => _scrollBy(160),
+              child: Container(
+                margin: EdgeInsets.only(left: 4.w, right: 8.w),
+                width: 30.r,
+                height: 30.r,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chevron_right_rounded,
+                    size: 18.r, color: AppColors.textPrimary),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 16.h),
       ],
@@ -376,37 +464,43 @@ class _CategoryRow extends StatelessWidget {
 // ────────────────────────────────────────────────────────────────────────────
 
 class _ExploreMoreButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ExploreMoreButton({required this.onTap});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20.r),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0x0A000000),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'explore_more'.tr(),
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 10,
+                offset: Offset(0, 4),
               ),
-            ),
-            Icon(Icons.arrow_forward_rounded,
-                color: AppColors.textPrimary, size: 20.r),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'explore_more'.tr(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded,
+                  color: AppColors.textPrimary, size: 20.r),
+            ],
+          ),
         ),
       ),
     );
