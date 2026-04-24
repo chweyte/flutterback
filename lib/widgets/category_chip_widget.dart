@@ -18,6 +18,9 @@ class CategoryChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasVisual =
+        category.imageAsset != null || category.imageUrl != null;
+
     return Padding(
       padding: EdgeInsets.only(right: 8.w),
       child: Material(
@@ -27,7 +30,12 @@ class CategoryChipWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(30.r),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 9.h),
+            padding: EdgeInsets.only(
+              left: hasVisual ? 3.w : 14.w,
+              right: 12.w,
+              top: hasVisual ? 3.h : 9.h,
+              bottom: hasVisual ? 3.h : 9.h,
+            ),
             decoration: BoxDecoration(
               color: isSelected ? AppColors.primary : AppColors.surface,
               borderRadius: BorderRadius.circular(30.r),
@@ -47,19 +55,33 @@ class CategoryChipWidget extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  category.icon,
-                  size: 14.r,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
-                ),
-                SizedBox(width: 5.w),
+                if (hasVisual) ...[
+                  ClipOval(
+                    child: SizedBox(
+                      width: 34.r,
+                      height: 34.r,
+                      child: _buildImage(),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                ] else ...[
+                  Icon(
+                    category.icon,
+                    size: 14.r,
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.textSecondary,
+                  ),
+                  SizedBox(width: 5.w),
+                ],
                 Text(
                   category.labelKey.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    color:
+                        isSelected ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -69,4 +91,29 @@ class CategoryChipWidget extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildImage() {
+    // Priorité : asset local > URL réseau
+    if (category.imageAsset != null) {
+      return Image.asset(
+        category.imageAsset!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _iconFallback(),
+      );
+    }
+    return Image.network(
+      category.imageUrl!,
+      fit: BoxFit.cover,
+      loadingBuilder: (_, child, progress) =>
+          progress == null ? child : _iconFallback(),
+      errorBuilder: (_, __, ___) => _iconFallback(),
+    );
+  }
+
+  Widget _iconFallback() => Container(
+        color: AppColors.background,
+        child: Center(
+          child: Icon(category.icon, size: 14, color: AppColors.textSecondary),
+        ),
+      );
 }
