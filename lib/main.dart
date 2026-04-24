@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 import 'screens/landing_screen.dart';
 import 'screens/client/client_home.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize easy_localization before Firebase
+  await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+
+  runApp(
+    // Wrap app with EasyLocalization to enable multi-language + RTL support
+    EasyLocalization(
+      supportedLocales: const [Locale('fr'), Locale('ar'), Locale('en')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('fr'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -24,16 +38,14 @@ class MyApp extends StatelessWidget {
       builder: (_, child) {
         return ToastificationWrapper(
           child: MaterialApp(
-            title: 'Antigravity App',
+            title: 'app_name'.tr(),
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              scaffoldBackgroundColor: const Color(0xFF16151A),
-              textTheme: GoogleFonts.interTextTheme(
-                Theme.of(context).textTheme,
-              ),
-            ),
-            home: AuthWrapper(),
+            theme: AppTheme.light,
+            // Pass locale + delegates from easy_localization
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            home: const AuthWrapper(),
           ),
         );
       },
@@ -42,6 +54,8 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -49,17 +63,12 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            backgroundColor: Color(0xFFF7F7F9),
-            body: Center(
-              child: CircularProgressIndicator(color: Color(0xFF007AFF)),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-
         if (snapshot.hasData && snapshot.data!.emailVerified) {
-          return ClientHome();
+          return const ClientHome();
         }
-
         return LandingScreen();
       },
     );
