@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import '../core/models/product_model.dart';
 import '../core/theme/app_colors.dart';
 import '../services/favorites_service.dart';
+import '../services/route_transitions.dart';
+import '../screens/client/product_detail_screen.dart';
 
 class ProductCardWidget extends StatefulWidget {
   final ProductModel product;
@@ -30,7 +32,12 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
     final subColor  = isDark ? Colors.white60 : AppColors.textSecondary;
 
     return RepaintBoundary(
-      child: Container(
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          SlidePageRoute(page: ProductDetailScreen(product: widget.product)),
+        ),
+        child: Container(
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(20.r),
@@ -172,6 +179,7 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

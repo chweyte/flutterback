@@ -248,8 +248,8 @@ class _LogoPlaceholder extends StatelessWidget {
 int _productCountForShop(String shopId) => _cachedCounts[shopId] ?? 0;
 
 const Map<String, int> _cachedCounts = {
-  'shop_bellah': 11,
-  'shop_homme': 1,
+  'shop_bellah': 10,
+  'shop_homme': 4,
   'shop_2': 1,
   'shop_3': 2,
   'shop_4': 4,
