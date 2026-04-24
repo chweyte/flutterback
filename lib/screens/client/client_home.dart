@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/models/category_model.dart';
 import '../../core/models/product_model.dart';
+import '../../core/models/shop_model.dart';
 import '../../widgets/product_card_widget.dart';
 import '../../widgets/category_chip_widget.dart';
 import '../../widgets/bottom_nav_widget.dart';
@@ -16,6 +17,8 @@ import 'notifications_screen.dart';
 import 'cart_screen.dart';
 import 'all_categories_screen.dart';
 import 'all_products_screen.dart';
+import 'shops_screen.dart';
+import 'shop_detail_screen.dart';
 
 class ClientHome extends StatefulWidget {
   const ClientHome({Key? key}) : super(key: key);
@@ -84,6 +87,18 @@ class _ClientHomeState extends State<ClientHome> {
                     onSeeAll: () => Navigator.push(
                       context,
                       SlidePageRoute(page: const AllCategoriesScreen()),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _ShopsRow(
+                    onSeeAll: () => Navigator.push(
+                      context,
+                      SlidePageRoute(page: const ShopsScreen()),
+                    ),
+                    onShopTap: (shop) => Navigator.push(
+                      context,
+                      SlidePageRoute(page: ShopDetailScreen(shop: shop)),
                     ),
                   ),
                 ),
@@ -455,6 +470,212 @@ class _CategoryRowState extends State<_CategoryRow> {
         ),
         SizedBox(height: 16.h),
       ],
+    );
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Boutiques row
+// ────────────────────────────────────────────────────────────────────────────
+
+class _ShopsRow extends StatefulWidget {
+  final VoidCallback onSeeAll;
+  final void Function(ShopModel) onShopTap;
+
+  const _ShopsRow({required this.onSeeAll, required this.onShopTap});
+
+  @override
+  State<_ShopsRow> createState() => _ShopsRowState();
+}
+
+class _ShopsRowState extends State<_ShopsRow> {
+  late final ScrollController _sc;
+
+  @override
+  void initState() {
+    super.initState();
+    _sc = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _sc.dispose();
+    super.dispose();
+  }
+
+  void _scrollBy(double delta) {
+    final target = (_sc.offset + delta)
+        .clamp(0.0, _sc.position.maxScrollExtent);
+    _sc.animateTo(target,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 10.h),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'boutiques'.tr(),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              GestureDetector(
+                onTap: widget.onSeeAll,
+                child: Text(
+                  'see_all_shops'.tr(),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            // Flèche gauche
+            GestureDetector(
+              onTap: () => _scrollBy(-180),
+              child: Container(
+                margin: EdgeInsets.only(left: 8.w, right: 4.w),
+                width: 30.r,
+                height: 30.r,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chevron_left_rounded,
+                    size: 18.r, color: AppColors.textPrimary),
+              ),
+            ),
+
+            // Liste scrollable
+            Expanded(
+              child: SizedBox(
+                height: 100.h,
+                child: ListView.builder(
+                  controller: _sc,
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.only(right: 4.w),
+                  itemCount: allShops.length,
+                  itemBuilder: (ctx, i) => _ShopChip(
+                    shop: allShops[i],
+                    onTap: () => widget.onShopTap(allShops[i]),
+                  ),
+                ),
+              ),
+            ),
+
+            // Flèche droite
+            GestureDetector(
+              onTap: () => _scrollBy(180),
+              child: Container(
+                margin: EdgeInsets.only(left: 4.w, right: 8.w),
+                width: 30.r,
+                height: 30.r,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chevron_right_rounded,
+                    size: 18.r, color: AppColors.textPrimary),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 16.h),
+      ],
+    );
+  }
+}
+
+class _ShopChip extends StatelessWidget {
+  final ShopModel shop;
+  final VoidCallback onTap;
+  const _ShopChip({required this.shop, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80.w,
+        margin: EdgeInsets.only(right: 12.w),
+        child: Column(
+          children: [
+            // Logo circulaire
+            Container(
+              width: 64.r,
+              height: 64.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border, width: 1.5),
+              ),
+              child: ClipOval(
+                child: _shopImage(shop),
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              shop.name,
+              style: TextStyle(
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _shopImage(ShopModel shop) {
+  if (shop.imageAsset != null) {
+    return Image.asset(shop.imageAsset!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name));
+  }
+  if (shop.imageUrl != null) {
+    return Image.network(shop.imageUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name));
+  }
+  return _ShopAvatar(name: shop.name);
+}
+
+class _ShopAvatar extends StatelessWidget {
+  final String name;
+  const _ShopAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primary,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'S',
+          style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800),
+        ),
+      ),
     );
   }
 }

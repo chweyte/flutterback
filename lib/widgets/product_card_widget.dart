@@ -55,14 +55,23 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Product image
-                    widget.product.imageUrl != null
-                        ? Image.network(
-                            widget.product.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _Placeholder(isDark: isDark),
-                          )
-                        : _Placeholder(isDark: isDark),
+                    // Product image — asset local prioritaire sur URL réseau
+                    if (widget.product.imageAsset != null)
+                      Image.asset(
+                        widget.product.imageAsset!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _Placeholder(isDark: isDark),
+                      )
+                    else if (widget.product.imageUrl != null)
+                      Image.network(
+                        widget.product.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _Placeholder(isDark: isDark),
+                      )
+                    else
+                      _Placeholder(isDark: isDark),
 
                     // Favorite button – connected to FavoritesService
                     Positioned(
