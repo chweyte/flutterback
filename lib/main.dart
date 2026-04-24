@@ -7,7 +7,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 import 'screens/landing_screen.dart';
 import 'screens/client/client_home.dart';
+import 'screens/admin/admin_home.dart';
+import 'screens/commercant/commercant_home.dart';
 import 'core/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,20 +81,46 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
+  Future<String?> _getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_role');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return FutureBuilder<String?>(
+      future: _getUserRole(),
+      builder: (context, roleSnapshot) {
+        if (roleSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (snapshot.hasData && snapshot.data!.emailVerified) {
-          return const ClientHome();
+
+        final role = roleSnapshot.data;
+
+        if (role == 'admin') {
+          return AdminHome();
         }
-        return LandingScreen();
+
+        if (role == 'commercant') {
+          return CommercantHome();
+        }
+
+        return StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData && snapshot.data!.emailVerified) {
+              return const ClientHome();
+            }
+            return LandingScreen();
+          },
+        );
       },
     );
   }

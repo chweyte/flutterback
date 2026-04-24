@@ -1,22 +1,32 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/commercant.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  // Déconnexion globale
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    await _auth.signOut();
+  }
+
   // Connexion Admin
   Future<String?> loginAdmin(String email, String password) async {
     if (email == 'admin@gmail.com' && password == 'adminadmin') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', 'admin');
       return 'admin';
     }
     return null;
   }
 
   // Connexion Commerçant
-  Future<Map<String, dynamic>?> loginCommercant(String email, String password) async {
+  Future<Commercant?> loginCommercant(String email, String password) async {
     try {
-      // Vérifier dans Firestore
       QuerySnapshot query = await _db
           .collection('commercants')
           .where('email', isEqualTo: email)
@@ -24,13 +34,11 @@ class AuthService {
           .get();
 
       if (query.docs.isNotEmpty) {
-        var data = query.docs.first.data() as Map<String, dynamic>;
-        bool isFirstConnection = data.containsKey('premiereConnexion') ? data['premiereConnexion'] : true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_role', 'commercant');
+        await prefs.setString('user_id', query.docs.first.id);
         
-        return {
-          'id': query.docs.first.id,
-          'premiereConnexion': isFirstConnection,
-        };
+        return Commercant.fromMap(query.docs.first.id, query.docs.first.data() as Map<String, dynamic>);
       }
       return null;
     } catch (e) {

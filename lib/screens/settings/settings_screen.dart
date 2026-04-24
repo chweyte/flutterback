@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/route_transitions.dart';
 import '../landing_screen.dart';
+import '../../services/auth_service.dart';
 
 /// Settings / Profile screen.
 /// Language change is applied via easy_localization – the whole app rebuilds
@@ -119,7 +120,7 @@ class SettingsScreen extends StatelessWidget {
               height: 50.h,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
+                  await AuthService().logout();
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,

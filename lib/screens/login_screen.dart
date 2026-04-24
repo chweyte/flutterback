@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import 'admin/admin_home.dart';
 import 'commercant/change_password_screen.dart';
 import 'commercant/commercant_home.dart';
+import '../models/commercant.dart';
 import 'client/signup_screen.dart';
 import 'client/client_home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -89,16 +90,16 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     // 2. Check Commerçant
-    Map<String, dynamic>? commercantResult = await _auth.loginCommercant(
+    Commercant? commercantResult = await _auth.loginCommercant(
       email,
       password,
     );
     if (commercantResult != null) {
-      if (commercantResult['premiereConnexion'] == true) {
+      if (commercantResult.premiereConnexion) {
         Navigator.pushReplacement(
           context,
           SlidePageRoute(
-            page: ChangePasswordScreen(commercantId: commercantResult['id']),
+            page: ChangePasswordScreen(commercantId: commercantResult.id),
           ),
         );
       } else {

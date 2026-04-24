@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 import '../../services/route_transitions.dart';
 import '../landing_screen.dart';
 
@@ -20,7 +20,7 @@ class AdminHome extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF1E293B)),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
+              await AuthService().logout();
               Navigator.pushReplacement(context, SlidePageRoute(page: LandingScreen()));
             },
           )
