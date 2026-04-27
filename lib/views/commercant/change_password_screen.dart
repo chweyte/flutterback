@@ -79,7 +79,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 16.h),
                         Text(
-                          'SÃ©curiser le compte',
+                          'SÃƒÂ©curiser le compte',
                           style: TextStyle(
                             fontSize: 28.sp,
                             fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          'Veuillez changer votre code par dÃ©faut',
+                          'Veuillez changer votre code par dÃƒÂ©faut',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16.sp,

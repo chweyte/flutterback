@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:toastification/toastification.dart';
@@ -12,28 +12,45 @@ import 'views/commercant/commercant_home.dart';
 import 'core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:provider/provider.dart';
+import 'controllers/product_service.dart';
+import 'controllers/shop_service.dart';
+import 'controllers/category_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Initialisation des services connectés à Firestore
+  ProductService.instance.initialize();
+  ShopService.instance.initialize();
+  CategoryService.instance.initialize();
+
   runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('fr'), Locale('ar'), Locale('en')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('fr'),
-      child: const MyApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: ProductService.instance),
+        ChangeNotifierProvider.value(value: ShopService.instance),
+        ChangeNotifierProvider.value(value: CategoryService.instance),
+      ],
+      child: EasyLocalization(
+        supportedLocales: const [Locale('fr'), Locale('ar'), Locale('en')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('fr'),
+        child: const MyApp(),
+      ),
     ),
   );
 }
 
 // Global scroll behavior
-// AppliquÃ© Ã  toute l'app : supprime l'effet Ã©lastique/rebond sur tous les
-// widgets scrollables (ListView, CustomScrollView, SingleChildScrollViewâ€¦)
-// sans avoir Ã  rÃ©pÃ©ter physics: sur chaque widget.
-// Ã‰tend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
+// AppliquÃƒÂ© ÃƒÂ  toute l'app : supprime l'effet ÃƒÂ©lastique/rebond sur tous les
+// widgets scrollables (ListView, CustomScrollView, SingleChildScrollViewÃ¢â‚¬Â¦)
+// sans avoir ÃƒÂ  rÃƒÂ©pÃƒÂ©ter physics: sur chaque widget.
+// Ãƒâ€°tend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
 // configuration des gestes tactiles Android. On remplace juste la physique
-// pour supprimer le rebond Ã©lastique et l'indicateur de surscroll.
+// pour supprimer le rebond ÃƒÂ©lastique et l'indicateur de surscroll.
 class _NoOverscrollBehavior extends MaterialScrollBehavior {
   const _NoOverscrollBehavior();
 

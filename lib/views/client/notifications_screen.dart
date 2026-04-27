@@ -15,15 +15,15 @@ class NotificationsScreen extends StatelessWidget {
       'icon': Icons.local_offer_outlined,
     },
     {
-      'title': 'Commande confirmÃ©e',
-      'body': 'Votre commande #1042 a Ã©tÃ© confirmÃ©e.',
+      'title': 'Commande confirmÃƒÂ©e',
+      'body': 'Votre commande #1042 a ÃƒÂ©tÃƒÂ© confirmÃƒÂ©e.',
       'time': 'Hier',
       'read': true,
       'icon': Icons.check_circle_outline_rounded,
     },
     {
       'title': 'Nouveau produit',
-      'body': 'DÃ©couvrez la nouvelle collection Daraa 2026.',
+      'body': 'DÃƒÂ©couvrez la nouvelle collection Daraa 2026.',
       'time': '24 Avr',
       'read': true,
       'icon': Icons.new_releases_outlined,

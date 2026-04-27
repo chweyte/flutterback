@@ -1,4 +1,4 @@
-import '../core/models/shop_model.dart';
+import '../models/commerce/shop_model.dart';
 
 class MerchantService {
   MerchantService._();

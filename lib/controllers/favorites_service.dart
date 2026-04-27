@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../core/models/product_model.dart';
+import '../models/commerce/product_model.dart';
 
-/// Singleton qui gÃ¨re les produits favoris.
-/// Utilise ValueNotifier pour notifier les widgets qui l'Ã©coutent
-/// sans avoir besoin d'un package de gestion d'Ã©tat externe.
+/// Singleton qui gÃƒÂ¨re les produits favoris.
+/// Utilise ValueNotifier pour notifier les widgets qui l'ÃƒÂ©coutent
+/// sans avoir besoin d'un package de gestion d'ÃƒÂ©tat externe.
 class FavoritesService {
   FavoritesService._();
   static final FavoritesService instance = FavoritesService._();

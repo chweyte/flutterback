@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../core/models/category_model.dart';
+import '../../models/commerce/category_model.dart';
 import '../../core/theme/app_colors.dart';
 
 class CategoryChipWidget extends StatelessWidget {
@@ -88,7 +88,7 @@ class CategoryChipWidget extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    // PrioritÃ© : asset local > URL rÃ©seau
+    // PrioritÃƒÂ© : asset local > URL rÃƒÂ©seau
     if (category.imageAsset != null) {
       return Image.asset(
         category.imageAsset!,

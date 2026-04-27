@@ -5,7 +5,7 @@ class AppColors {
   static const Color background = Color(0xFFF2F2F7);
   static const Color surface = Color(0xFFFFFFFF);
 
-  // Primary palette â€“ black/white aesthetic
+  // Primary palette Ã¢â‚¬â€œ black/white aesthetic
   static const Color primary = Color(0xFF1C1C1E);
   static const Color darkCard = Color(0xFF1C1C1E);
   static const Color lightCard = Color(0xFFFFFFFF);

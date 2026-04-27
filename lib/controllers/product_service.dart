@@ -1,22 +1,38 @@
 import 'package:flutter/foundation.dart';
-import '../core/models/product_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/commerce/product_model.dart';
 
-class ProductService {
+class ProductService extends ChangeNotifier {
   ProductService._();
   static final ProductService instance = ProductService._();
+  bool _isInit = false;
 
-  final ValueNotifier<List<ProductModel>> products =
-      ValueNotifier(List.from(allProducts));
+  List<ProductModel> _products = [];
+  bool isLoading = true;
 
-  List<ProductModel> get all => products.value;
+  List<ProductModel> get all => _products;
+
+  void initialize() {
+    if (_isInit) return;
+    _isInit = true;
+    FirebaseFirestore.instance.collection('products').snapshots().listen((
+      snapshot,
+    ) {
+      _products = snapshot.docs
+          .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
+          .toList();
+      isLoading = false;
+      notifyListeners();
+    });
+  }
 
   void add(ProductModel product) {
-    products.value = [...products.value, product];
+    FirebaseFirestore.instance.collection('products').add(product.toMap());
   }
 
   List<ProductModel> byShop(String shopId) =>
-      products.value.where((p) => p.shopId == shopId).toList();
+      _products.where((p) => p.shopId == shopId).toList();
 
   List<ProductModel> byCategory(String categoryId) =>
-      products.value.where((p) => p.category == categoryId).toList();
+      _products.where((p) => p.category == categoryId).toList();
 }

@@ -1,7 +1,10 @@
+﻿import '../../controllers/shop_service.dart';
+import '../../controllers/product_service.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../core/models/shop_model.dart';
-import '../../core/models/product_model.dart';
+import '../../models/commerce/shop_model.dart';
+import '../../models/commerce/product_model.dart';
 import '../../core/theme/app_colors.dart';
 import '../../views/widgets/product_card_widget.dart';
 
@@ -9,18 +12,18 @@ class ShopDetailScreen extends StatelessWidget {
   final ShopModel shop;
   const ShopDetailScreen({super.key, required this.shop});
 
-  List<ProductModel> get _products =>
-      allProducts.where((p) => p.shopId == shop.id).toList();
-
   @override
   Widget build(BuildContext context) {
-    final products = _products;
+    final products = context
+        .watch<ProductService>()
+        .all
+        .where((p) => p.shopId == shop.id)
+        .toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // â”€â”€ Cover + infos boutique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverToBoxAdapter(
             child: Stack(
               children: [
@@ -30,7 +33,7 @@ class ShopDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   child: _ShopCover(shop: shop),
                 ),
-                // DÃ©gradÃ© bas
+                // DÃƒÆ’Ã‚Â©gradÃƒÆ’Ã‚Â© bas
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -41,10 +44,7 @@ class ShopDetailScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
-                        colors: [
-                          Color(0xFFF2F2F7),
-                          Colors.transparent,
-                        ],
+                        colors: [Color(0xFFF2F2F7), Colors.transparent],
                       ),
                     ),
                   ),
@@ -62,8 +62,11 @@ class ShopDetailScreen extends StatelessWidget {
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 16.r, color: AppColors.textPrimary),
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 16.r,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -72,7 +75,6 @@ class ShopDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // â”€â”€ Infos boutique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
@@ -91,7 +93,9 @@ class ShopDetailScreen extends StatelessWidget {
                   Text(
                     shop.description,
                     style: TextStyle(
-                        fontSize: 13.sp, color: AppColors.textSecondary),
+                      fontSize: 13.sp,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Row(
@@ -104,7 +108,7 @@ class ShopDetailScreen extends StatelessWidget {
                             '${shop.rating.toStringAsFixed(1)} (${shop.reviewCount} avis)',
                       ),
                       SizedBox(width: 10.w),
-                      // CatÃ©gorie
+                      // CatÃƒÆ’Ã‚Â©gorie
                       _StatBadge(
                         icon: Icons.store_outlined,
                         iconColor: AppColors.primary,
@@ -133,7 +137,6 @@ class ShopDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // â”€â”€ Grille des produits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           products.isEmpty
               ? SliverToBoxAdapter(
                   child: Padding(
@@ -142,18 +145,20 @@ class ShopDetailScreen extends StatelessWidget {
                       child: Text(
                         'Aucun produit disponible',
                         style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14.sp),
+                          color: AppColors.textSecondary,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ),
                   ),
                 )
               : SliverPadding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 4.h,
+                  ),
                   sliver: SliverGrid(
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12.w,
                       mainAxisSpacing: 12.h,
@@ -197,31 +202,37 @@ class _ShopCover extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-        color: AppColors.primary,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.add_photo_alternate_outlined,
-                  color: Colors.white54, size: 40),
-              const SizedBox(height: 8),
-              Text(
-                'Ajoutez la photo de ${shop.name}',
-                style: const TextStyle(color: Colors.white60, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-            ],
+    color: AppColors.primary,
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.add_photo_alternate_outlined,
+            color: Colors.white54,
+            size: 40,
           ),
-        ),
-      );
+          const SizedBox(height: 8),
+          Text(
+            'Ajoutez la photo de ${shop.name}',
+            style: const TextStyle(color: Colors.white60, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _StatBadge extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String label;
-  const _StatBadge(
-      {required this.icon, required this.iconColor, required this.label});
+  const _StatBadge({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {

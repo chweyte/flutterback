@@ -1,7 +1,9 @@
+import '../../controllers/category_service.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../core/models/category_model.dart';
+import '../../models/commerce/category_model.dart';
 import '../../core/theme/app_colors.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
@@ -53,8 +55,8 @@ class AllCategoriesScreen extends StatelessWidget {
                   mainAxisSpacing: 12.h,
                   childAspectRatio: 1.4,
                 ),
-                itemCount: appCategories.length,
-                itemBuilder: (ctx, i) => _CategoryCard(category: appCategories[i]),
+                itemCount: context.watch<CategoryService>().all.length,
+                itemBuilder: (ctx, i) => _CategoryCard(category: context.watch<CategoryService>().all[i]),
               ),
             ),
           ],
@@ -77,7 +79,7 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final idx = appCategories.indexOf(category);
+    final idx = context.watch<CategoryService>().all.indexOf(category);
     final bg = _palette[idx % _palette.length];
     final isLight = bg.computeLuminance() > 0.3;
     final fgColor = isLight ? AppColors.textPrimary : Colors.white;

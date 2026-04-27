@@ -13,7 +13,7 @@ class CommercantHome extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Espace CommerÃ§ant',
+          'Espace CommerÃƒÂ§ant',
            style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)
         ),
         actions: [
@@ -40,7 +40,7 @@ class CommercantHome extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Bienvenue CommerÃ§ant !',
+              'Bienvenue CommerÃƒÂ§ant !',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
             ),
           ],

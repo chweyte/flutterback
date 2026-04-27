@@ -119,7 +119,7 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       } else {
         _showToast(
-          'Inscription commerÃ§ant en cours de dÃ©veloppement.',
+          'Inscription commerÃƒÂ§ant en cours de dÃƒÂ©veloppement.',
           ToastificationType.info,
         );
       }
@@ -471,7 +471,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             _buildRoleSegment(
                               'commercant',
                               'assets/merchant.svg',
-                              'CommerÃ§ant',
+                              'CommerÃƒÂ§ant',
                             ),
                           ],
                         ),
@@ -553,7 +553,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 horizontal: 16.w,
                                 vertical: 0,
                               ),
-                              hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+                              hintText: 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢',
                               hintStyle: const TextStyle(
                                 color: Color(0xFF94A3B8),
                               ),

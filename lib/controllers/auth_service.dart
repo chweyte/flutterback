@@ -1,13 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/commercant.dart';
+import '../models/users/commercant.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // DÃ©connexion globale
+  // DÃƒÂ©connexion globale
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -24,7 +24,7 @@ class AuthService {
     return null;
   }
 
-  // Connexion CommerÃ§ant
+  // Connexion CommerÃƒÂ§ant
   Future<Commercant?> loginCommercant(String email, String password) async {
     try {
       QuerySnapshot query = await _db
@@ -47,7 +47,7 @@ class AuthService {
     }
   }
 
-  // Changer le code du commerÃ§ant
+  // Changer le code du commerÃƒÂ§ant
   Future<void> changerCodeCommercant(String id, String nouveauCode) async {
     await _db.collection('commercants').doc(id).update({
       'code': nouveauCode,
@@ -63,7 +63,7 @@ class AuthService {
         password: password,
       );
       
-      // Envoi de l'email de vÃ©rification
+      // Envoi de l'email de vÃƒÂ©rification
       await result.user!.sendEmailVerification();
 
       return result.user!.uid;
@@ -83,7 +83,7 @@ class AuthService {
       if (!result.user!.emailVerified) {
         throw FirebaseAuthException(
           code: 'unverified-email', 
-          message: 'Veuillez vÃ©rifier votre email via le lien envoyÃ© avant de vous connecter.'
+          message: 'Veuillez vÃƒÂ©rifier votre email via le lien envoyÃƒÂ© avant de vous connecter.'
         );
       }
 
@@ -99,7 +99,7 @@ class AuthService {
     }
   }
 
-  // RÃ©initialisation mot de passe
+  // RÃƒÂ©initialisation mot de passe
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -108,7 +108,7 @@ class AuthService {
     }
   }
 
-  // CrÃ©ation du profil Firebase au moment de la vÃ©rification
+  // CrÃƒÂ©ation du profil Firebase au moment de la vÃƒÂ©rification
   Future<void> ensureClientProfileExists(String uid, String email) async {
     var doc = await _db.collection('clients').doc(uid).get();
     if (!doc.exists) {

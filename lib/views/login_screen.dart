@@ -4,7 +4,7 @@ import '../controllers/auth_service.dart';
 import 'admin/admin_home.dart';
 import 'commercant/change_password_screen.dart';
 import 'commercant/commercant_home.dart';
-import '../models/commercant.dart';
+import '../models/users/commercant.dart';
 import 'client/signup_screen.dart';
 import 'client/client_home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // 2. Check CommerÃ§ant
+    // 2. Check CommerÃƒÂ§ant
     Commercant? commercantResult = await _auth.loginCommercant(
       email,
       password,
@@ -125,10 +125,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
     } catch (e) {
-      // Pour les autres erreurs, on laissera tomber dans l'erreur gÃ©nÃ©rique ci-dessous
+      // Pour les autres erreurs, on laissera tomber dans l'erreur gÃƒÂ©nÃƒÂ©rique ci-dessous
     }
 
-    // Si on arrive ici, rien n'a marchÃ©
+    // Si on arrive ici, rien n'a marchÃƒÂ©
     _showToast('Email ou mot de passe incorrect', ToastificationType.error);
     setState(() => _loading = false);
   }
@@ -763,7 +763,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 horizontal: 16.w,
                                 vertical: 0,
                               ),
-                              hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+                              hintText: 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢',
                               hintStyle: const TextStyle(
                                 color: Color(0xFF94A3B8),
                               ),
