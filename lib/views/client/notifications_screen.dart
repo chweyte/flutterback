@@ -2,33 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
+import '../../controllers/notification_service.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
-  static const _notifs = [
-    {
-      'title': 'Nouvelle promotion !',
-      'body': 'Profitez de -20% sur les parfums ce weekend.',
-      'time': 'Il y a 2h',
-      'read': false,
-      'icon': Icons.local_offer_outlined,
-    },
-    {
-      'title': 'Commande confirmÃƒÂ©e',
-      'body': 'Votre commande #1042 a ÃƒÂ©tÃƒÂ© confirmÃƒÂ©e.',
-      'time': 'Hier',
-      'read': true,
-      'icon': Icons.check_circle_outline_rounded,
-    },
-    {
-      'title': 'Nouveau produit',
-      'body': 'DÃƒÂ©couvrez la nouvelle collection Daraa 2026.',
-      'time': '24 Avr',
-      'read': true,
-      'icon': Icons.new_releases_outlined,
-    },
-  ];
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load local storage notifications
+    NotificationService.instance.load();
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'offer':
+        return Icons.local_offer_outlined;
+      case 'success':
+        return Icons.check_circle_outline_rounded;
+      case 'new':
+        return Icons.new_releases_outlined;
+      default:
+        return Icons.notifications_active_outlined;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +54,11 @@ class NotificationsScreen extends StatelessWidget {
                         color: AppColors.surface,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16.r, color: AppColors.textPrimary),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16.r,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   SizedBox(width: 16.w),
@@ -65,83 +70,117 @@ class NotificationsScreen extends StatelessWidget {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => NotificationService.instance.clearAll(),
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 24.r,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
 
             // List
             Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                physics: const ClampingScrollPhysics(),
-                itemCount: _notifs.length,
-                separatorBuilder: (_, __) => SizedBox(height: 10.h),
-                itemBuilder: (ctx, i) {
-                  final n = _notifs[i];
-                  final isRead = n['read'] as bool;
-                  return Container(
-                    padding: EdgeInsets.all(14.r),
-                    decoration: BoxDecoration(
-                      color: isRead ? AppColors.surface : AppColors.primary,
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8.r),
-                          decoration: BoxDecoration(
-                            color: isRead
-                                ? AppColors.background
-                                : const Color(0x26FFFFFF),
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: Icon(
-                            n['icon'] as IconData,
-                            size: 20.r,
-                            color: isRead ? AppColors.textPrimary : Colors.white,
-                          ),
+              child: AnimatedBuilder(
+                animation: NotificationService.instance,
+                builder: (context, _) {
+                  final notifs = NotificationService.instance.items;
+
+                  if (notifs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'no_notifications'.tr(),
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 16.sp,
                         ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: notifs.length,
+                    separatorBuilder: (_, __) => SizedBox(height: 10.h),
+                    itemBuilder: (ctx, i) {
+                      final n = notifs[i];
+                      return GestureDetector(
+                        onTap: () => NotificationService.instance.markAsRead(i),
+                        child: Container(
+                          padding: EdgeInsets.all(14.r),
+                          decoration: BoxDecoration(
+                            color: n.read
+                                ? AppColors.surface
+                                : AppColors.primary,
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                n['title'] as String,
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: isRead
+                              Container(
+                                padding: EdgeInsets.all(8.r),
+                                decoration: BoxDecoration(
+                                  color: n.read
+                                      ? AppColors.background
+                                      : const Color(0x26FFFFFF),
+                                  borderRadius: BorderRadius.circular(10.r),
+                                ),
+                                child: Icon(
+                                  _getIconForType(n.iconType),
+                                  size: 20.r,
+                                  color: n.read
                                       ? AppColors.textPrimary
                                       : Colors.white,
                                 ),
                               ),
-                              SizedBox(height: 3.h),
-                              Text(
-                                n['body'] as String,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: isRead
-                                      ? AppColors.textSecondary
-                                      : Colors.white70,
-                                ),
-                              ),
-                              SizedBox(height: 6.h),
-                              Text(
-                                n['time'] as String,
-                                style: TextStyle(
-                                  fontSize: 10.sp,
-                                  color: isRead
-                                      ? AppColors.textLight
-                                      : Colors.white54,
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      n.title,
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: n.read
+                                            ? AppColors.textPrimary
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(height: 3.h),
+                                    Text(
+                                      n.body,
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: n.read
+                                            ? AppColors.textSecondary
+                                            : Colors.white70,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    Text(
+                                      n.time,
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: n.read
+                                            ? AppColors.textLight
+                                            : Colors.white54,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),

@@ -1,5 +1,6 @@
 import '../../controllers/shop_service.dart';
 import '../../controllers/product_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,7 +25,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedSize;
   int _qty = 1;
 
-  // Tailles selon catÃƒÆ’Ã‚Â©gorie
+  // Tailles selon catégorie
   List<String>? get _sizes {
     switch (widget.product.category) {
       case 'shoes':
@@ -34,20 +35,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case 'clothing':
         return ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
       case 'daraa':
-        return ['3m','4m','5m','6m','7m','8m','9m','10m','11m','12m'];
+        return ['3m', '4m', '5m', '6m', '7m', '8m', '9m', '10m', '11m', '12m'];
       default:
         return null;
     }
   }
 
-  ShopModel? get _shop => context.watch<ShopService>().all.cast<ShopModel?>().firstWhere(
-        (s) => s!.id == widget.product.shopId,
-        orElse: () => null,
-      );
+  ShopModel? get _shop => context
+      .watch<ShopService>()
+      .all
+      .cast<ShopModel?>()
+      .firstWhere((s) => s!.id == widget.product.shopId, orElse: () => null);
 
-  List<ProductModel> get _similar => context.watch<ProductService>().all
-      .where((p) =>
-          p.category == widget.product.category && p.id != widget.product.id)
+  List<ProductModel> get _similar => context
+      .watch<ProductService>()
+      .all
+      .where(
+        (p) =>
+            p.category == widget.product.category && p.id != widget.product.id,
+      )
       .take(6)
       .toList();
 
@@ -57,8 +63,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
-        pageBuilder: (_, __, ___) =>
-            _FullscreenImage(product: widget.product),
+        pageBuilder: (_, __, ___) => _FullscreenImage(product: widget.product),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 200),
@@ -71,11 +76,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (sizes != null && _selectedSize == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Veuillez choisir une taille'),
+          content: Text('select_size'.tr()),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -85,11 +91,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${widget.product.name} ajoutÃƒÆ’Ã‚Â© au panier'),
+        content: Text('added_to_cart'.tr(args: [widget.product.name])),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -120,7 +125,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: _ProductImage(product: widget.product),
                       ),
                     ),
-                    // DÃƒÆ’Ã‚Â©gradÃƒÆ’Ã‚Â© bas
+                    // Dégradé bas
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -131,10 +136,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           gradient: LinearGradient(
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
-                            colors: [
-                              Color(0xFFF2F2F7),
-                              Colors.transparent,
-                            ],
+                            colors: [Color(0xFFF2F2F7), Colors.transparent],
                           ),
                         ),
                       ),
@@ -143,7 +145,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     SafeArea(
                       child: Padding(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 8.h),
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -164,8 +168,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   iconColor: isFav
                                       ? AppColors.accent
                                       : AppColors.textPrimary,
-                                  onTap: () => FavoritesService.instance
-                                      .toggle(widget.product),
+                                  onTap: () => FavoritesService.instance.toggle(
+                                    widget.product,
+                                  ),
                                 );
                               },
                             ),
@@ -180,8 +185,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Infos produit ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
               SliverToBoxAdapter(
                 child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 4.h,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -189,7 +196,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       if (shop != null)
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 10.w, vertical: 4.h),
+                            horizontal: 10.w,
+                            vertical: 4.h,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             borderRadius: BorderRadius.circular(20.r),
@@ -197,15 +206,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.store_outlined,
-                                  size: 12.r,
-                                  color: AppColors.textSecondary),
+                              Icon(
+                                Icons.store_outlined,
+                                size: 12.r,
+                                color: AppColors.textSecondary,
+                              ),
                               SizedBox(width: 4.w),
                               Text(
                                 shop.name,
                                 style: TextStyle(
-                                    fontSize: 11.sp,
-                                    color: AppColors.textSecondary),
+                                  fontSize: 11.sp,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -250,9 +262,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           SizedBox(width: 5.w),
                           Text(
-                            'En stock',
+                            'in_stock'.tr(),
                             style: TextStyle(
-                                fontSize: 12.sp, color: Colors.green),
+                              fontSize: 12.sp,
+                              color: Colors.green,
+                            ),
                           ),
                         ],
                       ),
@@ -264,7 +278,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Taille',
+                              'size'.tr(),
                               style: TextStyle(
                                 fontSize: 15.sp,
                                 fontWeight: FontWeight.w700,
@@ -272,7 +286,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                             ),
                             Text(
-                              _selectedSize ?? 'Choisir',
+                              _selectedSize ?? 'choose'.tr(),
                               style: TextStyle(
                                 fontSize: 13.sp,
                                 color: _selectedSize != null
@@ -290,19 +304,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           children: sizes.map((s) {
                             final selected = _selectedSize == s;
                             return GestureDetector(
-                              onTap: () =>
-                                  setState(() => _selectedSize = s),
+                              onTap: () => setState(() => _selectedSize = s),
                               child: AnimatedContainer(
-                                duration:
-                                    const Duration(milliseconds: 150),
+                                duration: const Duration(milliseconds: 150),
                                 width: 50.r,
                                 height: 40.r,
                                 decoration: BoxDecoration(
                                   color: selected
                                       ? AppColors.primary
                                       : AppColors.surface,
-                                  borderRadius:
-                                      BorderRadius.circular(10.r),
+                                  borderRadius: BorderRadius.circular(10.r),
                                   border: Border.all(
                                     color: selected
                                         ? AppColors.primary
@@ -335,7 +346,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Row(
                         children: [
                           Text(
-                            'QuantitÃƒÆ’Ã‚Â©',
+                            'quantity'.tr(),
                             style: TextStyle(
                               fontSize: 15.sp,
                               fontWeight: FontWeight.w700,
@@ -346,8 +357,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           _QtyControl(
                             qty: _qty,
                             onDecrement: () {
-                              if (_qty > 1)
-                                setState(() => _qty--);
+                              if (_qty > 1) setState(() => _qty--);
                             },
                             onIncrement: () => setState(() => _qty++),
                           ),
@@ -358,7 +368,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Produits similaires ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
                       if (similar.isNotEmpty) ...[
                         Text(
-                          'Produits similaires',
+                          'similar_products'.tr(),
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w700,
@@ -371,11 +381,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12.w,
-                            mainAxisSpacing: 12.h,
-                            childAspectRatio: 0.78,
-                          ),
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12.w,
+                                mainAxisSpacing: 12.h,
+                                childAspectRatio: 0.78,
+                              ),
                           itemCount: similar.length,
                           itemBuilder: (ctx, i) =>
                               ProductCardWidget(product: similar[i]),
@@ -399,8 +409,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, 20.h),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x14000000),
@@ -426,7 +435,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         child: Text(
-                          'Ajouter au panier',
+                          'add_to_cart'.tr(),
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w700,
@@ -454,10 +463,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               height: 52.r,
                               decoration: BoxDecoration(
                                 color: AppColors.surface,
-                                borderRadius:
-                                    BorderRadius.circular(16.r),
-                                border: Border.all(
-                                    color: AppColors.border),
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(color: AppColors.border),
                               ),
                               child: Icon(
                                 Icons.shopping_bag_outlined,
@@ -508,24 +515,32 @@ class _ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (product.imageAsset != null) {
-      return Image.asset(product.imageAsset!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _imgFallback());
+      return Image.asset(
+        product.imageAsset!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _imgFallback(),
+      );
     }
     if (product.imageUrl != null) {
-      return Image.network(product.imageUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _imgFallback());
+      return Image.network(
+        product.imageUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _imgFallback(),
+      );
     }
     return _imgFallback();
   }
 
   Widget _imgFallback() => Container(
-        color: AppColors.primary,
-        child: const Center(
-            child: Icon(Icons.image_not_supported_outlined,
-                color: Colors.white54, size: 50)),
-      );
+    color: AppColors.primary,
+    child: const Center(
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        color: Colors.white54,
+        size: 50,
+      ),
+    ),
+  );
 }
 
 // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Bouton circulaire overlay ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
@@ -533,8 +548,7 @@ class _CircleBtn extends StatelessWidget {
   final IconData icon;
   final Color? iconColor;
   final VoidCallback onTap;
-  const _CircleBtn(
-      {required this.icon, this.iconColor, required this.onTap});
+  const _CircleBtn({required this.icon, this.iconColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -546,13 +560,13 @@ class _CircleBtn extends StatelessWidget {
         decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: Color(0x14000000), blurRadius: 8)
-          ],
+          boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 8)],
         ),
-        child: Icon(icon,
-            size: 18.r,
-            color: iconColor ?? AppColors.textPrimary),
+        child: Icon(
+          icon,
+          size: 18.r,
+          color: iconColor ?? AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -563,10 +577,11 @@ class _QtyControl extends StatelessWidget {
   final int qty;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
-  const _QtyControl(
-      {required this.qty,
-      required this.onDecrement,
-      required this.onIncrement});
+  const _QtyControl({
+    required this.qty,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -586,15 +601,17 @@ class _QtyControl extends StatelessWidget {
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Icon(Icons.remove_rounded,
-                  size: 16.r, color: AppColors.textPrimary),
+              child: Icon(
+                Icons.remove_rounded,
+                size: 16.r,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           SizedBox(width: 16.w),
           Text(
             '$qty',
-            style: TextStyle(
-                fontSize: 15.sp, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
           ),
           SizedBox(width: 16.w),
           GestureDetector(
@@ -606,8 +623,7 @@ class _QtyControl extends StatelessWidget {
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Icon(Icons.add_rounded,
-                  size: 16.r, color: Colors.white),
+              child: Icon(Icons.add_rounded, size: 16.r, color: Colors.white),
             ),
           ),
         ],
@@ -632,17 +648,30 @@ class _FullscreenImage extends StatelessWidget {
             minScale: 0.8,
             maxScale: 4.0,
             child: product.imageAsset != null
-                ? Image.asset(product.imageAsset!, fit: BoxFit.contain,
+                ? Image.asset(
+                    product.imageAsset!,
+                    fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.white54, size: 60))
+                      Icons.image_not_supported_outlined,
+                      color: Colors.white54,
+                      size: 60,
+                    ),
+                  )
                 : product.imageUrl != null
-                    ? Image.network(product.imageUrl!, fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colors.white54, size: 60))
-                    : const Icon(Icons.image_not_supported_outlined,
-                        color: Colors.white54, size: 60),
+                ? Image.network(
+                    product.imageUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.image_not_supported_outlined,
+                      color: Colors.white54,
+                      size: 60,
+                    ),
+                  )
+                : const Icon(
+                    Icons.image_not_supported_outlined,
+                    color: Colors.white54,
+                    size: 60,
+                  ),
           ),
         ),
       ),

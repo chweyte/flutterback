@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../controllers/auth_service.dart';
 import 'commercant_home.dart';
 
@@ -21,7 +22,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (_newCodeController.text != _confirmCodeController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Les codes ne correspondent pas'),
+          content: Text('codes_not_matching'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -79,7 +80,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 16.h),
                         Text(
-                          'SÃƒÂ©curiser le compte',
+                          'secure_account'.tr(),
                           style: TextStyle(
                             fontSize: 28.sp,
                             fontWeight: FontWeight.bold,
@@ -88,7 +89,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          'Veuillez changer votre code par dÃƒÂ©faut',
+                          'change_default_code'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16.sp,
@@ -101,7 +102,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           controller: _newCodeController,
                           obscureText: true,
                           decoration: InputDecoration(
-                            labelText: 'Nouveau code',
+                            labelText: 'new_code'.tr(),
                             prefixIcon: Icon(
                               Icons.lock_outline,
                               color: Colors.indigo,
@@ -125,7 +126,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           controller: _confirmCodeController,
                           obscureText: true,
                           decoration: InputDecoration(
-                            labelText: 'Confirmer le code',
+                            labelText: 'confirm_code'.tr(),
                             prefixIcon: Icon(
                               Icons.lock_reset,
                               color: Colors.indigo,
@@ -162,7 +163,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     elevation: 5,
                                   ),
                                   child: Text(
-                                    'Confirmer',
+                                    'confirm'.tr(),
                                     style: TextStyle(
                                       fontSize: 18.sp,
                                       color: Colors.white,
