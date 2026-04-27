@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../../services/route_transitions.dart';
+import '../../controllers/auth_service.dart';
+import '../../controllers/route_transitions.dart';
 import '../landing_screen.dart';
 
 class AdminHome extends StatelessWidget {

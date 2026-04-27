@@ -4,7 +4,7 @@ class CategoryModel {
   final String id;
   final String labelKey;
   final IconData icon;
-  final String? imageUrl;    // URL réseau
+  final String? imageUrl;    // URL rÃ©seau
   final String? imageAsset;  // fichier local dans assets/
 
   const CategoryModel({

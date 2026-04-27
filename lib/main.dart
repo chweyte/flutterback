@@ -5,10 +5,10 @@ import 'package:toastification/toastification.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
-import 'screens/landing_screen.dart';
-import 'screens/client/client_home.dart';
-import 'screens/admin/admin_home.dart';
-import 'screens/commercant/commercant_home.dart';
+import 'views/landing_screen.dart';
+import 'views/client/client_home.dart';
+import 'views/admin/admin_home.dart';
+import 'views/commercant/commercant_home.dart';
 import 'core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,13 +27,13 @@ void main() async {
   );
 }
 
-// ── Global scroll behavior ────────────────────────────────────────────────────
-// Appliqué à toute l'app : supprime l'effet élastique/rebond sur tous les
-// widgets scrollables (ListView, CustomScrollView, SingleChildScrollView…)
-// sans avoir à répéter physics: sur chaque widget.
-// Étend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
+// Global scroll behavior
+// AppliquÃ© Ã  toute l'app : supprime l'effet Ã©lastique/rebond sur tous les
+// widgets scrollables (ListView, CustomScrollView, SingleChildScrollViewâ€¦)
+// sans avoir Ã  rÃ©pÃ©ter physics: sur chaque widget.
+// Ã‰tend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
 // configuration des gestes tactiles Android. On remplace juste la physique
-// pour supprimer le rebond élastique et l'indicateur de surscroll.
+// pour supprimer le rebond Ã©lastique et l'indicateur de surscroll.
 class _NoOverscrollBehavior extends MaterialScrollBehavior {
   const _NoOverscrollBehavior();
 
@@ -46,8 +46,7 @@ class _NoOverscrollBehavior extends MaterialScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) =>
-      child;
+  ) => child;
 }
 
 class MyApp extends StatelessWidget {

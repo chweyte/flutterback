@@ -1,53 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../services/auth_service.dart';
-import 'client_home.dart';
+import '../controllers/auth_service.dart';
+import 'admin/admin_home.dart';
+import 'commercant/change_password_screen.dart';
+import 'commercant/commercant_home.dart';
+import '../models/commercant.dart';
+import 'client/signup_screen.dart';
+import 'client/client_home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:async';
-import '../../services/route_transitions.dart';
-import '../login_screen.dart';
+import '../controllers/route_transitions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:toastification/toastification.dart';
 
-class SignupScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
-  static final _emailController = TextEditingController();
-  static final _passwordController = TextEditingController();
-  static String _selectedRole = 'client'; // 'client' or 'commercant'
-  static bool _rememberMe = false;
-
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _resetEmailController = TextEditingController(); // Moved to class level
   final AuthService _auth = AuthService();
   bool _loading = false;
+  bool _rememberMe = false;
   bool _obscurePassword = true;
   Timer? _resendTimer;
   int _resendCooldown = 0;
-  String? _lastSubmittedEmail;
-  String? _lastSubmittedPassword;
 
   @override
   void initState() {
     super.initState();
     _emailController.addListener(_onInputChanged);
     _passwordController.addListener(_onInputChanged);
-    // After the first frame, check if we should automatically show verification
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null && !user.emailVerified) {
-        // If the current inputs match the logged in user, reopen the sheet
-        if (_emailController.text.trim() == user.email) {
-          _showVerificationBottomSheet();
-        }
-      }
-    });
+    _resetEmailController.addListener(_onInputChanged);
   }
 
   void _onInputChanged() {
-    if (mounted) setState(() {});
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _emailController.removeListener(_onInputChanged);
+    _passwordController.removeListener(_onInputChanged);
+    _resetEmailController.removeListener(_onInputChanged);
+    _emailController.dispose();
+    _passwordController.dispose();
+    _resetEmailController.dispose();
+    _resendTimer?.cancel();
+    super.dispose();
   }
 
   bool _isValidEmail(String email) {
@@ -66,91 +70,395 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _emailController.removeListener(_onInputChanged);
-    _passwordController.removeListener(_onInputChanged);
-    // We don't dispose static controllers here because we want them to persist
-    _resendTimer?.cancel();
-    super.dispose();
-  }
-
   String get _formattedCooldown {
     int minutes = _resendCooldown ~/ 60;
     int seconds = _resendCooldown % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _signup() async {
+  Future<void> _login() async {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _loading = true);
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
-    // 1. Check if we currently have an unverified session
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null && !currentUser.emailVerified) {
-      // If they changed nothing, just reopen the sheet!
-      if (email == _lastSubmittedEmail && password == _lastSubmittedPassword) {
+    // 1. Check Admin
+    String? adminRole = await _auth.loginAdmin(email, password);
+    if (adminRole != null) {
+      Navigator.pushReplacement(context, SlidePageRoute(page: AdminHome()));
+      return;
+    }
+
+    // 2. Check CommerÃ§ant
+    Commercant? commercantResult = await _auth.loginCommercant(
+      email,
+      password,
+    );
+    if (commercantResult != null) {
+      if (commercantResult.premiereConnexion) {
+        Navigator.pushReplacement(
+          context,
+          SlidePageRoute(
+            page: ChangePasswordScreen(commercantId: commercantResult.id),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          SlidePageRoute(page: CommercantHome()),
+        );
+      }
+      return;
+    }
+
+    // 3. Check Client
+    try {
+      String? uid = await _auth.loginClient(email, password);
+      if (uid != null) {
+        Navigator.pushReplacement(context, SlidePageRoute(page: ClientHome()));
+        return;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'unverified-email') {
         setState(() => _loading = false);
         _showVerificationBottomSheet();
         return;
-      } else {
-        // They changed the input. Delete the old unverified account!
-        try {
-          await currentUser.delete();
-        } catch (e) {
-          print("Could not delete previous unverified user: $e");
-        }
-      }
-    }
-
-    try {
-      if (_selectedRole == 'client') {
-        String? uid = await _auth.signupClient(
-          email,
-          "", // Phone number removed intentionally
-          password,
-        );
-        if (uid != null) {
-          _lastSubmittedEmail = email;
-          _lastSubmittedPassword = password;
-          _showVerificationBottomSheet();
-        }
-      } else {
-        _showToast(
-          'Inscription commerçant en cours de développement.',
-          ToastificationType.info,
-        );
       }
     } catch (e) {
-      String errorMsg = e.toString();
-
-      // If we hit already-in-use, let's see if it's their previous unverified account
-      if (errorMsg.contains('email-already-in-use')) {
-        try {
-          UserCredential cred = await FirebaseAuth.instance
-              .signInWithEmailAndPassword(email: email, password: password);
-          if (!cred.user!.emailVerified) {
-            _lastSubmittedEmail = email;
-            _lastSubmittedPassword = password;
-            setState(() => _loading = false);
-            _showVerificationBottomSheet();
-            return; // Successfully reopened!
-          } else {
-            errorMsg = "This account is already verified. Please go to Login.";
-          }
-        } catch (_) {
-          errorMsg = "Email is already in use by another account.";
-        }
-      } else {
-        if (errorMsg.contains(']')) {
-          errorMsg = errorMsg.split(']').last.trim();
-        }
-      }
-      _showToast('Erreur : $errorMsg', ToastificationType.error);
+      // Pour les autres erreurs, on laissera tomber dans l'erreur gÃ©nÃ©rique ci-dessous
     }
+
+    // Si on arrive ici, rien n'a marchÃ©
+    _showToast('Email ou mot de passe incorrect', ToastificationType.error);
     setState(() => _loading = false);
+  }
+
+  void _showError(String msg) {
+    _showToast(msg, ToastificationType.error);
+  }
+
+  void _showForgotPasswordBottomSheet() {
+    bool isSending = false;
+    bool isSent = false;
+
+    _resendTimer?.cancel();
+    _resendCooldown = 0;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 32.h,
+                left: 24.w,
+                right: 24.w,
+                top: 24.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      margin: EdgeInsets.only(bottom: 24.h),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                  ),
+                  if (!isSent) ...[
+                    Text(
+                      'Reset Password',
+                      style: TextStyle(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Enter your email address and we will send you a password reset link.',
+                      style: TextStyle(
+                        color: const Color(0xFF64748B),
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    Text(
+                      'Your email address',
+                      style: TextStyle(
+                        color: const Color(0xFF1E293B),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    SizedBox(
+                      height: 50.h,
+                      child: TextField(
+                        controller: _resetEmailController,
+                        style: const TextStyle(color: Color(0xFF1E293B)),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 0,
+                          ),
+                          hintText: 'e.g. username@gmail.com',
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(
+                            Icons.email_outlined,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F7F9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF007AFF),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50.h,
+                      child: AnimatedBuilder(
+                        animation: _resetEmailController,
+                        builder: (context, child) {
+                          bool isDisabled =
+                              isSending ||
+                              !_isValidEmail(_resetEmailController.text.trim());
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(
+                                    0xFF007AFF,
+                                  ).withOpacity(isDisabled ? 0.5 : 1.0),
+                                  const Color(
+                                    0xFF0055FF,
+                                  ).withOpacity(isDisabled ? 0.5 : 1.0),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isDisabled
+                                  ? null
+                                  : () async {
+                                      String email = _resetEmailController.text
+                                          .trim();
+                                      if (email.isEmpty) return;
+                                      setBottomSheetState(
+                                        () => isSending = true,
+                                      );
+                                      try {
+                                        await _auth.resetPassword(email);
+                                        setBottomSheetState(() {
+                                          isSending = false;
+                                          isSent = true;
+                                          _resendCooldown = 300;
+                                        });
+                                        _showToast(
+                                          'Reset link sent!',
+                                          ToastificationType.success,
+                                        );
+                                        _resendTimer?.cancel();
+                                        _resendTimer = Timer.periodic(
+                                          const Duration(seconds: 1),
+                                          (timer) {
+                                            setBottomSheetState(() {
+                                              if (_resendCooldown > 0) {
+                                                _resendCooldown--;
+                                              } else {
+                                                timer.cancel();
+                                              }
+                                            });
+                                          },
+                                        );
+                                      } catch (e) {
+                                        setBottomSheetState(
+                                          () => isSending = false,
+                                        );
+                                        _showToast(
+                                          'Error: ${e.toString()}',
+                                          ToastificationType.error,
+                                        );
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                disabledBackgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                              ),
+                              child: isSending
+                                  ? SizedBox(
+                                      height: 20.h,
+                                      width: 20.w,
+                                      child: const CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Send Link',
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ] else ...[
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(16.r),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF007AFF).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.mark_email_unread_outlined,
+                              size: 48.r,
+                              color: const Color(0xFF007AFF),
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Check your email',
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E293B),
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            'We sent a password reset link to your email.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0xFF64748B),
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50.h,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF007AFF),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                elevation: 0,
+                                splashFactory: NoSplash.splashFactory,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: Text(
+                                'Back to Login',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _resendCooldown > 0
+                                ? null
+                                : () async {
+                                    await _auth.resetPassword(
+                                      _resetEmailController.text.trim(),
+                                    );
+                                    _showToast(
+                                      'Password reset link resent.',
+                                      ToastificationType.success,
+                                    );
+                                    setBottomSheetState(() {
+                                      _resendCooldown = 300;
+                                    });
+                                    _resendTimer?.cancel();
+                                    _resendTimer = Timer.periodic(
+                                      const Duration(seconds: 1),
+                                      (timer) {
+                                        setBottomSheetState(() {
+                                          if (_resendCooldown > 0) {
+                                            _resendCooldown--;
+                                          } else {
+                                            timer.cancel();
+                                          }
+                                        });
+                                      },
+                                    );
+                                  },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 8.0.h,
+                                horizontal: 16.0.w,
+                              ),
+                              child: Text(
+                                _resendCooldown > 0
+                                    ? 'Resend link ($_formattedCooldown)'
+                                    : 'Resend link',
+                                style: TextStyle(
+                                  color: _resendCooldown > 0
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 24.h),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showVerificationBottomSheet() {
@@ -233,16 +541,14 @@ class _SignupScreenState extends State<SignupScreen> {
                               setBottomSheetState(() => isChecking = true);
                               User? user = FirebaseAuth.instance.currentUser;
                               await user?.reload();
-                              user = FirebaseAuth
-                                  .instance
-                                  .currentUser; // get refreshed state
+                              user = FirebaseAuth.instance.currentUser;
 
                               if (user != null && user.emailVerified) {
                                 await AuthService().ensureClientProfileExists(
                                   user.uid,
                                   user.email ?? '',
                                 );
-                                Navigator.pop(context); // close bottom sheet
+                                Navigator.pop(context);
                                 Navigator.pushReplacement(
                                   this.context,
                                   SlidePageRoute(page: ClientHome()),
@@ -345,57 +651,6 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildRoleSegment(String role, String assetPath, String title) {
-    bool isSelected = _selectedRole == role;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedRole = role),
-        child: AnimatedContainer(
-          duration: isSelected
-              ? const Duration(milliseconds: 200)
-              : Duration.zero,
-          curve: Curves.easeInOut,
-          padding: EdgeInsets.symmetric(vertical: 10.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: isSelected
-                  ? const Color(0xFF007AFF)
-                  : Colors.grey.shade200,
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            children: [
-              SvgPicture.asset(
-                assetPath,
-                width: 26.w,
-                colorFilter: ColorFilter.mode(
-                  isSelected
-                      ? const Color(0xFF007AFF)
-                      : const Color(0xFF64748B),
-                  BlendMode.srcIn,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                title,
-                style: TextStyle(
-                  color: isSelected
-                      ? const Color(0xFF007AFF)
-                      : const Color(0xFF64748B),
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  fontSize: 13.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -422,64 +677,20 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 16.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12.r),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.chevron_left,
-                                  color: const Color(0xFF1E293B),
-                                  size: 24.r,
-                                ),
-                                onPressed: () {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                'Sign up',
-                                style: TextStyle(
-                                  fontSize: 32.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1E293B),
-                                  height: 1.2,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1E293B),
+                            height: 1.2,
+                          ),
                         ),
-                        SizedBox(height: 24.h),
-
-                        // Role Segment Control
-                        Row(
-                          children: [
-                            _buildRoleSegment(
-                              'client',
-                              'assets/user.svg',
-                              'Client',
-                            ),
-                            SizedBox(width: 16.w),
-                            _buildRoleSegment(
-                              'commercant',
-                              'assets/merchant.svg',
-                              'Commerçant',
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 24.h),
+                        SizedBox(height: 30.h),
 
                         // Email field
                         Text(
-                          'Your email address',
+                          'Your number & email address',
                           style: TextStyle(
                             color: const Color(0xFF1E293B),
                             fontSize: 13.sp,
@@ -501,10 +712,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintStyle: const TextStyle(
                                 color: Color(0xFF94A3B8),
                               ),
-                              prefixIcon: Icon(
+                              prefixIcon: const Icon(
                                 Icons.person_outline,
-                                color: const Color(0xFF94A3B8),
-                                size: 24.r,
+                                color: Color(0xFF94A3B8),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -553,14 +763,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                 horizontal: 16.w,
                                 vertical: 0,
                               ),
-                              hintText: '••••••••••••',
+                              hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
                               hintStyle: const TextStyle(
                                 color: Color(0xFF94A3B8),
                               ),
-                              prefixIcon: Icon(
+                              prefixIcon: const Icon(
                                 Icons.lock_outline,
-                                color: const Color(0xFF94A3B8),
-                                size: 24.r,
+                                color: Color(0xFF94A3B8),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -602,40 +811,63 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         SizedBox(height: 16.h),
 
-                        // Remember me
+                        // Remember me & Forget password
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            SizedBox(
-                              width: 20.w,
-                              height: 20.h,
-                              child: Checkbox(
-                                value: _rememberMe,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _rememberMe = val ?? false;
-                                  });
-                                },
-                                checkColor: Colors.white,
-                                activeColor: const Color(0xFF007AFF),
-                                side: BorderSide(color: Colors.grey.shade400),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4.r),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 20.w,
+                                  height: 20.h,
+                                  child: Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _rememberMe = val ?? false;
+                                      });
+                                    },
+                                    checkColor: Colors.white,
+                                    activeColor: const Color(0xFF007AFF),
+                                    side: BorderSide(
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.r),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  'Remember me',
+                                  style: TextStyle(
+                                    color: const Color(0xFF64748B),
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Remember me',
-                              style: TextStyle(
-                                color: const Color(0xFF64748B),
-                                fontSize: 13.sp,
+                            TextButton(
+                              onPressed: _showForgotPasswordBottomSheet,
+                              style: TextButton.styleFrom(
+                                splashFactory: NoSplash.splashFactory,
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size(50.w, 30.h),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'Forget password',
+                                style: TextStyle(
+                                  color: const Color(0xFF007AFF),
+                                  fontSize: 13.sp,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 24.h),
 
-                        // Signup Button
+                        // Login Button
                         SizedBox(
                           width: double.infinity,
                           height: 50.h,
@@ -676,7 +908,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       ) ||
                                       _passwordController.text.isEmpty)
                                   ? null
-                                  : _signup,
+                                  : _login,
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: Colors.transparent,
@@ -696,7 +928,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       ),
                                     )
                                   : Text(
-                                      'Sign up',
+                                      'Log In',
                                       style: TextStyle(
                                         fontSize: 16.sp,
                                         color: Colors.white,
@@ -768,18 +1000,18 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         SizedBox(height: 24.h),
 
-                        // Login
+                        // Create account
                         Center(
                           child: RichText(
                             text: TextSpan(
-                              text: "Already have an account? ",
+                              text: "Don't have an account? ",
                               style: TextStyle(
                                 color: const Color(0xFF64748B),
                                 fontSize: 13.sp,
                               ),
                               children: [
                                 TextSpan(
-                                  text: 'Login',
+                                  text: 'SignUp',
                                   style: const TextStyle(
                                     color: Color(0xFF007AFF),
                                     fontWeight: FontWeight.w600,
@@ -788,7 +1020,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ..onTap = () {
                                       FocusManager.instance.primaryFocus
                                           ?.unfocus();
-                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        SlidePageRoute(page: SignupScreen()),
+                                      );
                                     },
                                 ),
                               ],

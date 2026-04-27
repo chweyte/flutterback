@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../../services/route_transitions.dart';
+import '../../controllers/auth_service.dart';
+import '../../controllers/route_transitions.dart';
 import '../landing_screen.dart';
 
 class CommercantHome extends StatelessWidget {
@@ -13,7 +13,7 @@ class CommercantHome extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Espace Commerçant',
+          'Espace CommerÃ§ant',
            style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)
         ),
         actions: [
@@ -40,7 +40,7 @@ class CommercantHome extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Bienvenue Commerçant !',
+              'Bienvenue CommerÃ§ant !',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
             ),
           ],

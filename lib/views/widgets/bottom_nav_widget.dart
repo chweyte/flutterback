@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../core/theme/app_colors.dart';
+import '../../core/theme/app_colors.dart';
 
 /// Floating dark bottom navigation: Home / Search / Favorites / Notifications / Cart
 class BottomNavWidget extends StatelessWidget {

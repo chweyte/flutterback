@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/cart_service.dart';
+import '../../controllers/cart_service.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -17,7 +17,7 @@ class CartScreen extends StatelessWidget {
             final total = CartService.instance.totalPrice;
             return Column(
               children: [
-                // ── Header ───────────────────────────────────────────
+                // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
                   child: Row(
@@ -55,7 +55,7 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
 
-                // ── Liste ────────────────────────────────────────────
+                // â”€â”€ Liste â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   child: items.isEmpty
                       ? Center(
@@ -84,7 +84,7 @@ class CartScreen extends StatelessWidget {
                         ),
                 ),
 
-                // ── Total + Commander ─────────────────────────────────
+                // â”€â”€ Total + Commander â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (items.isNotEmpty)
                   Container(
                     padding: EdgeInsets.all(20.r),
@@ -130,7 +130,7 @@ class CartScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content:
-                                      Text('Commande passée avec succès !'),
+                                      Text('Commande passÃ©e avec succÃ¨s !'),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -229,7 +229,7 @@ class _CartTile extends StatelessWidget {
               ],
             ),
           ),
-          // Quantité + supprimer
+          // QuantitÃ© + supprimer
           Column(
             children: [
               Row(

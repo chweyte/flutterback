@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'login_screen.dart';
-import '../services/route_transitions.dart';
+import '../controllers/route_transitions.dart';
 
 class LandingScreen extends StatelessWidget {
   @override

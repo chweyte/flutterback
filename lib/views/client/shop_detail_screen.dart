@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/models/shop_model.dart';
 import '../../core/models/product_model.dart';
 import '../../core/theme/app_colors.dart';
-import '../../widgets/product_card_widget.dart';
+import '../../views/widgets/product_card_widget.dart';
 
 class ShopDetailScreen extends StatelessWidget {
   final ShopModel shop;
@@ -20,7 +20,7 @@ class ShopDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // ── Cover + infos boutique ──────────────────────────────────
+          // â”€â”€ Cover + infos boutique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverToBoxAdapter(
             child: Stack(
               children: [
@@ -30,7 +30,7 @@ class ShopDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   child: _ShopCover(shop: shop),
                 ),
-                // Dégradé bas
+                // DÃ©gradÃ© bas
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -72,7 +72,7 @@ class ShopDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // ── Infos boutique ──────────────────────────────────────────
+          // â”€â”€ Infos boutique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
@@ -104,7 +104,7 @@ class ShopDetailScreen extends StatelessWidget {
                             '${shop.rating.toStringAsFixed(1)} (${shop.reviewCount} avis)',
                       ),
                       SizedBox(width: 10.w),
-                      // Catégorie
+                      // CatÃ©gorie
                       _StatBadge(
                         icon: Icons.store_outlined,
                         iconColor: AppColors.primary,
@@ -133,7 +133,7 @@ class ShopDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // ── Grille des produits ────────────────────────────────────
+          // â”€â”€ Grille des produits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           products.isEmpty
               ? SliverToBoxAdapter(
                   child: Padding(

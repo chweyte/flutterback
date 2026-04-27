@@ -3,11 +3,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/models/product_model.dart';
 import '../../core/models/shop_model.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/cart_service.dart';
-import '../../services/favorites_service.dart';
-import '../../services/route_transitions.dart';
+import '../../controllers/cart_service.dart';
+import '../../controllers/favorites_service.dart';
+import '../../controllers/route_transitions.dart';
 import 'cart_screen.dart';
-import '../../widgets/product_card_widget.dart';
+import '../../views/widgets/product_card_widget.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -21,7 +21,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedSize;
   int _qty = 1;
 
-  // Tailles selon catégorie
+  // Tailles selon catÃ©gorie
   List<String>? get _sizes {
     switch (widget.product.category) {
       case 'shoes':
@@ -82,7 +82,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${widget.product.name} ajouté au panier'),
+        content: Text('${widget.product.name} ajoutÃ© au panier'),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape:
@@ -102,10 +102,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // ── Scrollable content ────────────────────────────────────
+          // â”€â”€ Scrollable content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           CustomScrollView(
             slivers: [
-              // ── Image ──────────────────────────────────────────────
+              // â”€â”€ Image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               SliverToBoxAdapter(
                 child: Stack(
                   children: [
@@ -117,7 +117,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: _ProductImage(product: widget.product),
                       ),
                     ),
-                    // Dégradé bas
+                    // DÃ©gradÃ© bas
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -174,7 +174,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
 
-              // ── Infos produit ───────────────────────────────────────
+              // â”€â”€ Infos produit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               SliverToBoxAdapter(
                 child: Padding(
                   padding:
@@ -255,7 +255,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       SizedBox(height: 20.h),
 
-                      // ── Sélecteur de taille ──────────────────────
+                      // â”€â”€ SÃ©lecteur de taille â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                       if (sizes != null) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -328,11 +328,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         SizedBox(height: 20.h),
                       ],
 
-                      // ── Quantité ─────────────────────────────────
+                      // â”€â”€ QuantitÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                       Row(
                         children: [
                           Text(
-                            'Quantité',
+                            'QuantitÃ©',
                             style: TextStyle(
                               fontSize: 15.sp,
                               fontWeight: FontWeight.w700,
@@ -352,7 +352,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       SizedBox(height: 28.h),
 
-                      // ── Produits similaires ───────────────────────
+                      // â”€â”€ Produits similaires â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                       if (similar.isNotEmpty) ...[
                         Text(
                           'Produits similaires',
@@ -387,7 +387,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
 
-          // ── Barre fixe en bas ────────────────────────────────────
+          // â”€â”€ Barre fixe en bas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Positioned(
             bottom: 0,
             left: 0,
@@ -408,7 +408,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               child: Row(
                 children: [
-                  // Bouton Ajouter au panier (prend la majorité)
+                  // Bouton Ajouter au panier (prend la majoritÃ©)
                   Expanded(
                     child: SizedBox(
                       height: 52.h,
@@ -433,7 +433,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   SizedBox(width: 12.w),
-                  // Icône panier — ouvre CartScreen
+                  // IcÃ´ne panier â€” ouvre CartScreen
                   ValueListenableBuilder<List<CartItem>>(
                     valueListenable: CartService.instance.items,
                     builder: (_, items, __) {
@@ -497,7 +497,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 }
 
-// ── Image produit (asset ou réseau) ────────────────────────────────────────
+// â”€â”€ Image produit (asset ou rÃ©seau) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _ProductImage extends StatelessWidget {
   final ProductModel product;
   const _ProductImage({required this.product});
@@ -525,7 +525,7 @@ class _ProductImage extends StatelessWidget {
       );
 }
 
-// ── Bouton circulaire overlay ───────────────────────────────────────────────
+// â”€â”€ Bouton circulaire overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _CircleBtn extends StatelessWidget {
   final IconData icon;
   final Color? iconColor;
@@ -555,7 +555,7 @@ class _CircleBtn extends StatelessWidget {
   }
 }
 
-// ── Contrôle quantité ──────────────────────────────────────────────────────
+// â”€â”€ ContrÃ´le quantitÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _QtyControl extends StatelessWidget {
   final int qty;
   final VoidCallback onDecrement;
@@ -613,7 +613,7 @@ class _QtyControl extends StatelessWidget {
   }
 }
 
-// ── Vue fullscreen photo ────────────────────────────────────────────────────
+// â”€â”€ Vue fullscreen photo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _FullscreenImage extends StatelessWidget {
   final ProductModel product;
   const _FullscreenImage({required this.product});

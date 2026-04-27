@@ -61,7 +61,7 @@ const List<ProductModel> allProducts = [
   ),
   ProductModel(
     id: '6',
-    name: 'Sérum Visage',
+    name: 'SÃ©rum Visage',
     price: '480 MRU',
     priceValue: 480,
     isDark: true,
@@ -127,7 +127,7 @@ const List<ProductModel> allProducts = [
   ),
   ProductModel(
     id: '13',
-    name: 'Coussin Déco',
+    name: 'Coussin DÃ©co',
     price: '290 MRU',
     priceValue: 290,
     imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80',
@@ -145,7 +145,7 @@ const List<ProductModel> allProducts = [
   ),
   ProductModel(
     id: '15',
-    name: 'Rouge à Lèvres',
+    name: 'Rouge Ã  LÃ¨vres',
     price: '320 MRU',
     priceValue: 320,
     isDark: true,
@@ -155,7 +155,7 @@ const List<ProductModel> allProducts = [
   ),
   ProductModel(
     id: '16',
-    name: 'Crème Hydratante',
+    name: 'CrÃ¨me Hydratante',
     price: '380 MRU',
     priceValue: 380,
     imageUrl: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=80',
@@ -163,7 +163,7 @@ const List<ProductModel> allProducts = [
     shopId: 'shop_5',
   ),
 
-  // ── BELLAH DUBAI — Melhfa ───────────────────────────────────────────────
+  // â”€â”€ BELLAH DUBAI â€” Melhfa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Kati
   ProductModel(
     id: 'b_kati_1',
@@ -279,7 +279,7 @@ const List<ProductModel> allProducts = [
     shopId: 'shop_bellah',
   ),
 
-  // ── DARRAH SHOP — Daraa ─────────────────────────────────────────────────
+  // â”€â”€ DARRAH SHOP â€” Daraa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   ProductModel(
     id: 'd_1',
     name: 'Daraa Premium',
@@ -292,7 +292,7 @@ const List<ProductModel> allProducts = [
   ),
   ProductModel(
     id: 'd_2',
-    name: 'Daraa Élégant',
+    name: 'Daraa Ã‰lÃ©gant',
     price: '1 200 MRU',
     priceValue: 1200,
     isDark: true,

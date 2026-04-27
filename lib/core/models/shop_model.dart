@@ -3,7 +3,7 @@ class ShopModel {
   final String name;
   final String description;
   final String category;
-  final String? imageUrl;    // URL réseau
+  final String? imageUrl;    // URL rÃ©seau
   final String? imageAsset;  // fichier local assets/
   final double rating;
   final int reviewCount;
@@ -21,21 +21,21 @@ class ShopModel {
 }
 
 const List<ShopModel> allShops = [
-  // ── Mets tes photos : assets/bellah_dubai_cover.jpg  et  assets/bellah_dubai_logo.jpg
+  // â”€â”€ Mets tes photos : assets/bellah_dubai_cover.jpg  et  assets/bellah_dubai_logo.jpg
   ShopModel(
     id: 'shop_bellah',
     name: 'BELLAH DUBAI',
-    description: 'Melhfa élégante — collection Dubai',
+    description: 'Melhfa Ã©lÃ©gante â€” collection Dubai',
     category: 'Melhfa',
     imageAsset: 'assets/bellah_dubai_cover.jpg',
     rating: 4.9,
     reviewCount: 0,
   ),
-  // ── Mets tes photos : assets/boutique_homme_cover.jpg  et  assets/boutique_homme_logo.jpg
+  // â”€â”€ Mets tes photos : assets/boutique_homme_cover.jpg  et  assets/boutique_homme_logo.jpg
   ShopModel(
     id: 'shop_homme',
     name: 'DARRAH SHOP',
-    description: 'Daraa premium — tenue traditionnelle',
+    description: 'Daraa premium â€” tenue traditionnelle',
     category: 'Daraa',
     imageAsset: 'assets/daraah_shop.jpg',
     rating: 4.8,
@@ -62,7 +62,7 @@ const List<ShopModel> allShops = [
   ShopModel(
     id: 'shop_4',
     name: 'Mode & Style',
-    description: 'Vêtements, chaussures et sacs tendance',
+    description: 'VÃªtements, chaussures et sacs tendance',
     category: 'Mode',
     imageUrl: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80',
     rating: 4.6,
@@ -72,7 +72,7 @@ const List<ShopModel> allShops = [
     id: 'shop_5',
     name: 'Beauty Corner',
     description: 'Maquillage et soins de la peau',
-    category: 'Beauté',
+    category: 'BeautÃ©',
     imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80',
     rating: 4.8,
     reviewCount: 305,
@@ -80,7 +80,7 @@ const List<ShopModel> allShops = [
   ShopModel(
     id: 'shop_6',
     name: 'Maison & Sport',
-    description: 'Décoration, sport et accessoires',
+    description: 'DÃ©coration, sport et accessoires',
     category: 'Divers',
     imageUrl: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=80',
     rating: 4.4,

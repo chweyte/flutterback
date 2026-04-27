@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/product_model.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/favorites_service.dart';
-import '../../widgets/product_card_widget.dart';
+import '../../controllers/favorites_service.dart';
+import '../../views/widgets/product_card_widget.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -55,7 +55,7 @@ class FavoritesScreen extends StatelessWidget {
                               size: 60.r, color: AppColors.textLight),
                           SizedBox(height: 16.h),
                           Text(
-                            'Appuyez sur ❤ pour ajouter des favoris',
+                            'Appuyez sur â¤ pour ajouter des favoris',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: AppColors.textSecondary,

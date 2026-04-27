@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/product_model.dart';
 import '../../core/theme/app_colors.dart';
-import '../../widgets/product_card_widget.dart';
+import '../../views/widgets/product_card_widget.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key});
@@ -43,7 +43,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ─────────────────────────────────────────────────
+            // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
               child: Row(
@@ -81,7 +81,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
               ),
             ),
 
-            // ── Category filter chips ───────────────────────────────────
+            // â”€â”€ Category filter chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SizedBox(
               height: 40.h,
               child: ListView.builder(
@@ -129,12 +129,12 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
             SizedBox(height: 12.h),
 
-            // ── Product grid ────────────────────────────────────────────
+            // â”€â”€ Product grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               child: _filtered.isEmpty
                   ? Center(
                       child: Text(
-                        'Aucun produit dans cette catégorie',
+                        'Aucun produit dans cette catÃ©gorie',
                         style: TextStyle(
                             color: AppColors.textSecondary, fontSize: 14.sp),
                       ),

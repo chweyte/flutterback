@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/models/shop_model.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/route_transitions.dart';
+import '../../controllers/route_transitions.dart';
 import 'shop_detail_screen.dart';
 
 class ShopsScreen extends StatelessWidget {
@@ -17,7 +17,7 @@ class ShopsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ─────────────────────────────────────────────────
+            // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
               child: Row(
@@ -61,7 +61,7 @@ class ShopsScreen extends StatelessWidget {
               ),
             ),
 
-            // ── Liste des boutiques ─────────────────────────────────────
+            // â”€â”€ Liste des boutiques â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               child: ListView.separated(
                 padding:
@@ -199,7 +199,7 @@ class _ShopCard extends StatelessWidget {
   }
 }
 
-// Image de boutique : asset local > URL réseau > placeholder lettrine
+// Image de boutique : asset local > URL rÃ©seau > placeholder lettrine
 class _ShopImage extends StatelessWidget {
   final ShopModel shop;
   const _ShopImage({required this.shop});

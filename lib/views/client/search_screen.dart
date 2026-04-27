@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/models/category_model.dart';
 import '../../core/models/product_model.dart';
-import '../../widgets/product_card_widget.dart';
+import '../../views/widgets/product_card_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -46,7 +46,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ─────────────────────────────────────────────────
+            // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 12.h),
               child: Row(
@@ -117,7 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
 
-            // ── Category filter ─────────────────────────────────────────
+            // â”€â”€ Category filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SizedBox(
               height: 38.h,
               child: ListView.builder(
@@ -165,7 +165,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
             SizedBox(height: 12.h),
 
-            // ── Results ─────────────────────────────────────────────────
+            // â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               child: _filtered.isEmpty
                   ? Center(
@@ -176,7 +176,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               size: 48.r, color: AppColors.textLight),
                           SizedBox(height: 12.h),
                           Text(
-                            'Aucun résultat trouvé',
+                            'Aucun rÃ©sultat trouvÃ©',
                             style: TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 14.sp),

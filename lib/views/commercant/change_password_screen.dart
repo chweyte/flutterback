@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../services/auth_service.dart';
+import '../../controllers/auth_service.dart';
 import 'commercant_home.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -79,7 +79,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 16.h),
                         Text(
-                          'Sécuriser le compte',
+                          'SÃ©curiser le compte',
                           style: TextStyle(
                             fontSize: 28.sp,
                             fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          'Veuillez changer votre code par défaut',
+                          'Veuillez changer votre code par dÃ©faut',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16.sp,

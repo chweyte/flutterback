@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../core/models/category_model.dart';
-import '../core/theme/app_colors.dart';
+import '../../core/models/category_model.dart';
+import '../../core/theme/app_colors.dart';
 
 class CategoryChipWidget extends StatelessWidget {
   final CategoryModel category;
@@ -18,8 +18,7 @@ class CategoryChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasVisual =
-        category.imageAsset != null || category.imageUrl != null;
+    final hasVisual = category.imageAsset != null || category.imageUrl != null;
 
     return Padding(
       padding: EdgeInsets.only(right: 8.w),
@@ -68,9 +67,7 @@ class CategoryChipWidget extends StatelessWidget {
                   Icon(
                     category.icon,
                     size: 14.r,
-                    color: isSelected
-                        ? Colors.white
-                        : AppColors.textSecondary,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
                   ),
                   SizedBox(width: 5.w),
                 ],
@@ -78,10 +75,8 @@ class CategoryChipWidget extends StatelessWidget {
                   category.labelKey.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color:
-                        isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -93,7 +88,7 @@ class CategoryChipWidget extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    // Priorité : asset local > URL réseau
+    // PrioritÃ© : asset local > URL rÃ©seau
     if (category.imageAsset != null) {
       return Image.asset(
         category.imageAsset!,
@@ -111,9 +106,9 @@ class CategoryChipWidget extends StatelessWidget {
   }
 
   Widget _iconFallback() => Container(
-        color: AppColors.background,
-        child: Center(
-          child: Icon(category.icon, size: 14, color: AppColors.textSecondary),
-        ),
-      );
+    color: AppColors.background,
+    child: Center(
+      child: Icon(category.icon, size: 14, color: AppColors.textSecondary),
+    ),
+  );
 }

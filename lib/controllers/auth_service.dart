@@ -7,7 +7,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Déconnexion globale
+  // DÃ©connexion globale
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -24,7 +24,7 @@ class AuthService {
     return null;
   }
 
-  // Connexion Commerçant
+  // Connexion CommerÃ§ant
   Future<Commercant?> loginCommercant(String email, String password) async {
     try {
       QuerySnapshot query = await _db
@@ -47,7 +47,7 @@ class AuthService {
     }
   }
 
-  // Changer le code du commerçant
+  // Changer le code du commerÃ§ant
   Future<void> changerCodeCommercant(String id, String nouveauCode) async {
     await _db.collection('commercants').doc(id).update({
       'code': nouveauCode,
@@ -63,7 +63,7 @@ class AuthService {
         password: password,
       );
       
-      // Envoi de l'email de vérification
+      // Envoi de l'email de vÃ©rification
       await result.user!.sendEmailVerification();
 
       return result.user!.uid;
@@ -83,7 +83,7 @@ class AuthService {
       if (!result.user!.emailVerified) {
         throw FirebaseAuthException(
           code: 'unverified-email', 
-          message: 'Veuillez vérifier votre email via le lien envoyé avant de vous connecter.'
+          message: 'Veuillez vÃ©rifier votre email via le lien envoyÃ© avant de vous connecter.'
         );
       }
 
@@ -99,7 +99,7 @@ class AuthService {
     }
   }
 
-  // Réinitialisation mot de passe
+  // RÃ©initialisation mot de passe
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -108,7 +108,7 @@ class AuthService {
     }
   }
 
-  // Création du profil Firebase au moment de la vérification
+  // CrÃ©ation du profil Firebase au moment de la vÃ©rification
   Future<void> ensureClientProfileExists(String uid, String email) async {
     var doc = await _db.collection('clients').doc(uid).get();
     if (!doc.exists) {

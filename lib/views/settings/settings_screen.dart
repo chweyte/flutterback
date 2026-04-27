@@ -3,20 +3,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/route_transitions.dart';
+import '../../controllers/route_transitions.dart';
 import '../landing_screen.dart';
-import '../../services/auth_service.dart';
+import '../../controllers/auth_service.dart';
 
 /// Settings / Profile screen.
-/// Language change is applied via easy_localization – the whole app rebuilds
+/// Language change is applied via easy_localization â€“ the whole app rebuilds
 /// automatically (including RTL for Arabic).
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
   static const _languages = [
-    {'code': 'fr', 'name': 'Français',  'flag': '🇫🇷'},
-    {'code': 'ar', 'name': 'العربية',   'flag': '🇲🇷'},
-    {'code': 'en', 'name': 'English',   'flag': '🇬🇧'},
+    {'code': 'fr', 'name': 'FranÃ§ais',  'flag': 'ðŸ‡«ðŸ‡·'},
+    {'code': 'ar', 'name': 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',   'flag': 'ðŸ‡²ðŸ‡·'},
+    {'code': 'en', 'name': 'English',   'flag': 'ðŸ‡¬ðŸ‡§'},
   ];
 
   @override
@@ -40,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Profile card ────────────────────────────────────────────
+            // â”€â”€ Profile card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SizedBox(height: 10.h),
             Container(
               padding: EdgeInsets.all(16.r),
@@ -89,7 +89,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
 
-            // ── Language section ─────────────────────────────────────────
+            // â”€â”€ Language section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SizedBox(height: 24.h),
             Text(
               'language'.tr(),
@@ -114,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
 
             const Spacer(),
 
-            // ── Logout ────────────────────────────────────────────────────
+            // â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SizedBox(
               width: double.infinity,
               height: 50.h,
