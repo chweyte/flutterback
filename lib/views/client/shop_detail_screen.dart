@@ -3,6 +3,7 @@ import '../../controllers/product_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/commerce/shop_model.dart';
 import '../../models/commerce/product_model.dart';
 import '../../core/theme/app_colors.dart';
@@ -33,7 +34,7 @@ class ShopDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   child: _ShopCover(shop: shop),
                 ),
-                // DÃƒÆ’Ã‚Â©gradÃƒÆ’Ã‚Â© bas
+                // -- Dégradé bas --
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -112,20 +113,24 @@ class ShopDetailScreen extends StatelessWidget {
                       _StatBadge(
                         icon: Icons.store_outlined,
                         iconColor: AppColors.primary,
-                        label: shop.category,
+                        label:
+                            shop.categoryTitle ??
+                            'categories_list.${shop.category}'.tr(),
                       ),
                       SizedBox(width: 10.w),
                       // Produits
                       _StatBadge(
                         icon: Icons.inventory_2_outlined,
                         iconColor: AppColors.primary,
-                        label: '${products.length} produits',
+                        label: 'items_count'.tr(
+                          args: [products.length.toString()],
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 20.h),
                   Text(
-                    'Produits',
+                    'products'.tr(),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -143,7 +148,7 @@ class ShopDetailScreen extends StatelessWidget {
                     padding: EdgeInsets.all(40.r),
                     child: Center(
                       child: Text(
-                        'Aucun produit disponible',
+                        'no_products_available'.tr(),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14.sp,

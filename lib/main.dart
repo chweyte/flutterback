@@ -104,34 +104,36 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: _getUserRole(),
-      builder: (context, roleSnapshot) {
-        if (roleSnapshot.connectionState == ConnectionState.waiting) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final role = roleSnapshot.data;
-
-        if (role == 'admin') {
-          return AdminHome();
+        final user = authSnapshot.data;
+        if (user == null) {
+          return LandingScreen();
         }
 
-        if (role == 'commercant') {
-          return CommercantHome();
-        }
-
-        return StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+        // User is authenticated, now check role-based routing
+        return FutureBuilder<String?>(
+          future: _getUserRole(),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-            if (snapshot.hasData && snapshot.data!.emailVerified) {
+
+            final role = roleSnapshot.data;
+            if (role == 'admin') return AdminHome();
+            if (role == 'commercant') return CommercantHome();
+
+            // Default to ClientHome for standard users with verification check
+            if (user.emailVerified) {
               return const ClientHome();
             }
             return LandingScreen();

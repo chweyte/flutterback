@@ -34,8 +34,11 @@ class ShopsScreen extends StatelessWidget {
                         color: AppColors.surface,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16.r, color: AppColors.textPrimary),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16.r,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   SizedBox(width: 16.w),
@@ -52,10 +55,19 @@ class ShopsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${context.watch<ShopService>().all.length} boutiques disponibles',
+                          'shops_count'.tr(
+                            args: [
+                              context
+                                  .watch<ShopService>()
+                                  .all
+                                  .length
+                                  .toString(),
+                            ],
+                          ),
                           style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColors.textSecondary),
+                            fontSize: 12.sp,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -67,8 +79,7 @@ class ShopsScreen extends StatelessWidget {
             // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Liste des boutiques ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
             Expanded(
               child: ListView.separated(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
                 itemCount: context.watch<ShopService>().all.length,
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
                 itemBuilder: (ctx, i) => _ShopCard(
@@ -76,7 +87,10 @@ class ShopsScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     ctx,
                     SlidePageRoute(
-                        page: ShopDetailScreen(shop: context.watch<ShopService>().all[i])),
+                      page: ShopDetailScreen(
+                        shop: context.watch<ShopService>().all[i],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -95,8 +109,7 @@ class _ShopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productCount =
-        context.watch<ShopService>().all.indexOf(shop) >= 0 ? _productCountForShop(shop.id) : 0;
+    final productCount = context.watch<ProductService>().byShop(shop.id).length;
 
     return GestureDetector(
       onTap: onTap,
@@ -118,7 +131,8 @@ class _ShopCard extends StatelessWidget {
             // Logo boutique
             ClipRRect(
               borderRadius: BorderRadius.horizontal(
-                  left: Radius.circular(18.r)),
+                left: Radius.circular(18.r),
+              ),
               child: SizedBox(
                 width: 90.w,
                 height: 90.h,
@@ -146,7 +160,9 @@ class _ShopCard extends StatelessWidget {
                   Text(
                     shop.description,
                     style: TextStyle(
-                        fontSize: 11.sp, color: AppColors.textSecondary),
+                      fontSize: 11.sp,
+                      color: AppColors.textSecondary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -154,8 +170,11 @@ class _ShopCard extends StatelessWidget {
                   Row(
                     children: [
                       // Note
-                      Icon(Icons.star_rounded,
-                          size: 13.r, color: const Color(0xFFFFB800)),
+                      Icon(
+                        Icons.star_rounded,
+                        size: 13.r,
+                        color: const Color(0xFFFFB800),
+                      ),
                       SizedBox(width: 3.w),
                       Text(
                         shop.rating.toStringAsFixed(1),
@@ -169,20 +188,23 @@ class _ShopCard extends StatelessWidget {
                       Text(
                         '(${shop.reviewCount})',
                         style: TextStyle(
-                            fontSize: 10.sp,
-                            color: AppColors.textSecondary),
+                          fontSize: 10.sp,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const Spacer(),
                       // Nb produits
                       Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 3.h),
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.background,
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: Text(
-                          '$productCount produits',
+                          'items_count'.tr(args: [productCount.toString()]),
                           style: TextStyle(
                             fontSize: 10.sp,
                             color: AppColors.textSecondary,
@@ -239,23 +261,12 @@ class _LogoPlaceholder extends StatelessWidget {
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : 'S',
           style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w800),
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
   }
 }
-
-int _productCountForShop(String shopId) => _cachedCounts[shopId] ?? 0;
-
-const Map<String, int> _cachedCounts = {
-  'shop_bellah': 10,
-  'shop_homme': 4,
-  'shop_2': 1,
-  'shop_3': 2,
-  'shop_4': 4,
-  'shop_5': 4,
-  'shop_6': 3,
-};

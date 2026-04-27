@@ -72,7 +72,7 @@ class CategoryChipWidget extends StatelessWidget {
                   SizedBox(width: 5.w),
                 ],
                 Text(
-                  category.labelKey.tr(),
+                  category.name ?? category.labelKey.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

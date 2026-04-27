@@ -3,8 +3,9 @@
   final String name;
   final String description;
   final String category;
-  final String? imageUrl;    // URL rÃƒÂ©seau
-  final String? imageAsset;  // fichier local assets/
+  final String? categoryTitle;
+  final String? imageUrl; // URL réseau
+  final String? imageAsset; // fichier local assets/
   final double rating;
   final int reviewCount;
 
@@ -13,6 +14,7 @@
     required this.name,
     required this.description,
     required this.category,
+    this.categoryTitle,
     this.imageUrl,
     this.imageAsset,
     this.rating = 4.5,
@@ -25,6 +27,7 @@
       name: map['name'] ?? '',
       description: map['description'] ?? '',
       category: map['category'] ?? '',
+      categoryTitle: map['categoryTitle'],
       imageUrl: map['imageUrl'],
       imageAsset: map['imageAsset'],
       rating: (map['rating'] ?? 4.5) * 1.0,
@@ -37,6 +40,7 @@
       'name': name,
       'description': description,
       'category': category,
+      'categoryTitle': categoryTitle,
       'imageUrl': imageUrl,
       'imageAsset': imageAsset,
       'rating': rating,
@@ -44,5 +48,3 @@
     };
   }
 }
-
-

@@ -3,13 +3,15 @@
 class CategoryModel {
   final String id;
   final String labelKey;
+  final String? name;
   final IconData icon;
-  final String? imageUrl;    // URL rÃƒÂ©seau
-  final String? imageAsset;  // fichier local dans assets/
+  final String? imageUrl; // URL réseau
+  final String? imageAsset; // fichier local dans assets/
 
   const CategoryModel({
     required this.id,
     required this.labelKey,
+    this.name,
     required this.icon,
     this.imageUrl,
     this.imageAsset,
@@ -19,9 +21,10 @@ class CategoryModel {
     return CategoryModel(
       id: documentId,
       labelKey: map['labelKey'] ?? '',
+      name: map['name'],
       icon: IconData(
-        map['iconCodePoint'] ?? 0xe000, 
-        fontFamily: map['iconFontFamily'] ?? 'MaterialIcons'
+        map['iconCodePoint'] ?? 0xe000,
+        fontFamily: map['iconFontFamily'] ?? 'MaterialIcons',
       ),
       imageUrl: map['imageUrl'],
       imageAsset: map['imageAsset'],
@@ -31,6 +34,7 @@ class CategoryModel {
   Map<String, dynamic> toMap() {
     return {
       'labelKey': labelKey,
+      'name': name,
       'iconCodePoint': icon.codePoint,
       'iconFontFamily': icon.fontFamily,
       'imageUrl': imageUrl,
@@ -38,4 +42,3 @@ class CategoryModel {
     };
   }
 }
-

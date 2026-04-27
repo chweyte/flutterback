@@ -20,7 +20,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
   List<ProductModel> get _filtered {
     if (_selectedCategory == 'all') return context.watch<ProductService>().all;
-    return context.watch<ProductService>().all.where((p) => p.category == _selectedCategory).toList();
+    return context
+        .watch<ProductService>()
+        .all
+        .where((p) => p.category == _selectedCategory)
+        .toList();
   }
 
   // Unique categories from context.watch<ProductService>().all
@@ -60,8 +64,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                         color: AppColors.surface,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16.r, color: AppColors.textPrimary),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16.r,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   SizedBox(width: 16.w),
@@ -76,9 +83,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     ),
                   ),
                   Text(
-                    '${_filtered.length} produits',
+                    'items_count'.tr(args: [_filtered.length.toString()]),
                     style: TextStyle(
-                        fontSize: 12.sp, color: AppColors.textSecondary),
+                      fontSize: 12.sp,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -100,11 +109,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                       duration: const Duration(milliseconds: 180),
                       margin: EdgeInsets.only(right: 8.w),
                       padding: EdgeInsets.symmetric(
-                          horizontal: 14.w, vertical: 8.h),
+                        horizontal: 14.w,
+                        vertical: 8.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.surface,
+                        color: selected ? AppColors.primary : AppColors.surface,
                         borderRadius: BorderRadius.circular(20.r),
                         border: Border.all(
                           color: selected
@@ -137,16 +146,19 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
               child: _filtered.isEmpty
                   ? Center(
                       child: Text(
-                        'Aucun produit dans cette catÃƒÆ’Ã‚Â©gorie',
+                        'no_products_in_category'.tr(),
                         style: TextStyle(
-                            color: AppColors.textSecondary, fontSize: 14.sp),
+                          color: AppColors.textSecondary,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     )
                   : GridView.builder(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 20.w, vertical: 4.h),
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
+                        horizontal: 20.w,
+                        vertical: 4.h,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 12.w,
                         mainAxisSpacing: 12.h,

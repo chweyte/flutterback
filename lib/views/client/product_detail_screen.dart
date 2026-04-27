@@ -25,21 +25,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedSize;
   int _qty = 1;
 
-  // Tailles selon catégorie
-  List<String>? get _sizes {
-    switch (widget.product.category) {
-      case 'shoes':
-        return ['36', '37', '38', '39', '40', '41', '42', '43', '44'];
-      case 'melhfa':
-        return ['1m', '2m'];
-      case 'clothing':
-        return ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
-      case 'daraa':
-        return ['3m', '4m', '5m', '6m', '7m', '8m', '9m', '10m', '11m', '12m'];
-      default:
-        return null;
-    }
-  }
+  // Tailles du produit (depuis la base de données)
+  List<String>? get _sizes => widget.product.sizes;
 
   ShopModel? get _shop => context
       .watch<ShopService>()
