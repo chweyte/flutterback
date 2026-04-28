@@ -1,4 +1,4 @@
-﻿class ShopModel {
+class ShopModel {
   final String id;
   final String name;
   final String description;
@@ -8,6 +8,7 @@
   final String? imageAsset; // fichier local assets/
   final double rating;
   final int reviewCount;
+  final String? merchantId;
 
   const ShopModel({
     required this.id,
@@ -19,6 +20,7 @@
     this.imageAsset,
     this.rating = 4.5,
     this.reviewCount = 0,
+    this.merchantId,
   });
 
   factory ShopModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -32,6 +34,7 @@
       imageAsset: map['imageAsset'],
       rating: (map['rating'] ?? 4.5) * 1.0,
       reviewCount: map['reviewCount'] ?? 0,
+      merchantId: map['merchantId'],
     );
   }
 
@@ -45,6 +48,7 @@
       'imageAsset': imageAsset,
       'rating': rating,
       'reviewCount': reviewCount,
+      'merchantId': merchantId,
     };
   }
 }

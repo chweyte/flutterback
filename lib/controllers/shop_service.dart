@@ -25,4 +25,12 @@ class ShopService extends ChangeNotifier {
       notifyListeners();
     });
   }
+
+  Future<void> addShop(ShopModel shop) async {
+    await FirebaseFirestore.instance.collection('shops').add(shop.toMap());
+  }
+
+  Future<void> updateShop(ShopModel shop) async {
+    await FirebaseFirestore.instance.collection('shops').doc(shop.id).update(shop.toMap());
+  }
 }

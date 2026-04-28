@@ -26,8 +26,16 @@ class ProductService extends ChangeNotifier {
     });
   }
 
-  void add(ProductModel product) {
-    FirebaseFirestore.instance.collection('products').add(product.toMap());
+  Future<void> add(ProductModel product) async {
+    await FirebaseFirestore.instance.collection('products').add(product.toMap());
+  }
+
+  Future<void> updateProduct(ProductModel product) async {
+    await FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toMap());
+  }
+
+  Future<void> deleteProduct(String productId) async {
+    await FirebaseFirestore.instance.collection('products').doc(productId).delete();
   }
 
   List<ProductModel> byShop(String shopId) =>

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/users/commercant.dart';
+import 'merchant_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -37,6 +38,9 @@ class AuthService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_role', 'commercant');
         await prefs.setString('user_id', query.docs.first.id);
+        
+        // Charger la boutique du commerçant
+        await MerchantService.instance.loadMerchantShop(query.docs.first.id);
         
         return Commercant.fromMap(query.docs.first.id, query.docs.first.data() as Map<String, dynamic>);
       }
