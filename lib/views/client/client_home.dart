@@ -3,6 +3,7 @@ import '../../controllers/shop_service.dart';
 import '../../controllers/product_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,6 +24,7 @@ import 'all_categories_screen.dart';
 import 'all_products_screen.dart';
 import 'shops_screen.dart';
 import 'shop_detail_screen.dart';
+import '../../controllers/cart_service.dart';
 
 class ClientHome extends StatefulWidget {
   const ClientHome({Key? key}) : super(key: key);
@@ -32,120 +34,156 @@ class ClientHome extends StatefulWidget {
 }
 
 class _ClientHomeState extends State<ClientHome> {
-  int _selectedCategory = 0;
   int _navIndex = 0;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _navIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onNavTap(int i) {
+    if ((i - _navIndex).abs() > 1) {
+      _pageController.jumpToPage(i);
+    } else {
+      _pageController.animateToPage(
+        i,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutQuart,
+      );
+    }
+  }
+
+  void _onPageChanged(int i) {
+    setState(() => _navIndex = i);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const ClampingScrollPhysics(),
+              dragStartBehavior: DragStartBehavior.down,
+              children: const [
+                _HomeView(),
+                SearchScreen(),
+                FavoritesScreen(),
+                NotificationsScreen(),
+                CartScreen(),
+              ],
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ValueListenableBuilder<List<CartItem>>(
+                valueListenable: CartService.instance.items,
+                builder: (context, items, _) {
+                  return BottomNavWidget(
+                    currentIndex: _navIndex,
+                    onTap: _onNavTap,
+                    cartCount: items.length,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeView extends StatefulWidget {
+  const _HomeView({Key? key}) : super(key: key);
+
+  @override
+  State<_HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<_HomeView> {
+  int _selectedCategory = 0;
 
   String get _username {
     final u = FirebaseAuth.instance.currentUser;
     return u?.displayName ?? u?.email?.split('@').first ?? 'User';
   }
 
-  // Filter products by selected category (index 0 = "new_in" = show all)
   List<ProductModel> get _visibleProducts {
     if (_selectedCategory == 0) return context.watch<ProductService>().all;
     final catId = context.watch<CategoryService>().all[_selectedCategory].id;
     return context.watch<ProductService>().all.where((p) => p.category == catId).toList();
   }
 
-  void _onNavTap(int i) {
-    setState(() => _navIndex = i);
-    switch (i) {
-      case 1:
-        Navigator.push(context, SlidePageRoute(page: const SearchScreen()))
-            .then((_) => setState(() => _navIndex = 0));
-        break;
-      case 2:
-        Navigator.push(context, SlidePageRoute(page: const FavoritesScreen()))
-            .then((_) => setState(() => _navIndex = 0));
-        break;
-      case 3:
-        Navigator.push(
-                context, SlidePageRoute(page: const NotificationsScreen()))
-            .then((_) => setState(() => _navIndex = 0));
-        break;
-      case 4:
-        Navigator.push(context, SlidePageRoute(page: const CartScreen()))
-            .then((_) => setState(() => _navIndex = 0));
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final products = _visibleProducts;
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _Header(username: _username),
-                ),
-                SliverToBoxAdapter(child: _SearchSection()),
-                SliverToBoxAdapter(
-                  child: _CategoryRow(
-                    selectedIndex: _selectedCategory,
-                    onSelect: (i) => setState(() => _selectedCategory = i),
-                    onSeeAll: () => Navigator.push(
-                      context,
-                      SlidePageRoute(page: const AllCategoriesScreen()),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: _ShopsRow(
-                    onSeeAll: () => Navigator.push(
-                      context,
-                      SlidePageRoute(page: const ShopsScreen()),
-                    ),
-                    onShopTap: (shop) => Navigator.push(
-                      context,
-                      SlidePageRoute(page: ShopDetailScreen(shop: shop)),
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  sliver: SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
-                      childAspectRatio: 0.78,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, i) => ProductCardWidget(product: products[i]),
-                      childCount: products.length,
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: _ExploreMoreButton(
-                    onTap: () => Navigator.push(
-                      context,
-                      SlidePageRoute(page: const AllProductsScreen()),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(child: SizedBox(height: 90.h)),
-              ],
-            ),
-
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: BottomNavWidget(
-                currentIndex: _navIndex,
-                onTap: _onNavTap,
-                cartCount: 0,
-              ),
-            ),
-          ],
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: _Header(username: _username),
         ),
-      ),
+        SliverToBoxAdapter(child: _SearchSection()),
+        SliverToBoxAdapter(
+          child: _CategoryRow(
+            selectedIndex: _selectedCategory,
+            onSelect: (i) => setState(() => _selectedCategory = i),
+            onSeeAll: () => Navigator.push(
+              context,
+              SlidePageRoute(page: const AllCategoriesScreen()),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _ShopsRow(
+            onSeeAll: () => Navigator.push(
+              context,
+              SlidePageRoute(page: const ShopsScreen()),
+            ),
+            onShopTap: (shop) => Navigator.push(
+              context,
+              SlidePageRoute(page: ShopDetailScreen(shop: shop)),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12.w,
+              mainAxisSpacing: 12.h,
+              childAspectRatio: 0.78,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) => ProductCardWidget(product: products[i]),
+              childCount: products.length,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _ExploreMoreButton(
+            onTap: () => Navigator.push(
+              context,
+              SlidePageRoute(page: const AllProductsScreen()),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: 90.h)),
+      ],
     );
   }
 }
@@ -310,11 +348,6 @@ class _SearchSection extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: TextField(
-                    readOnly: true,
-                    onTap: () => Navigator.push(
-                      context,
-                      SlidePageRoute(page: const SearchScreen()),
-                    ),
                     decoration: InputDecoration(
                       hintText: 'search_placeholder'.tr(),
                       hintStyle: TextStyle(
@@ -547,12 +580,13 @@ class _ShopsRowState extends State<_ShopsRow> {
           ),
         ),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // FlÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨che gauche
             GestureDetector(
               onTap: () => _scrollBy(-180),
               child: Container(
-                margin: EdgeInsets.only(left: 8.w, right: 4.w),
+                margin: EdgeInsets.only(left: 8.w, right: 4.w, top: 17.r),
                 width: 30.r,
                 height: 30.r,
                 decoration: const BoxDecoration(
@@ -585,7 +619,7 @@ class _ShopsRowState extends State<_ShopsRow> {
             GestureDetector(
               onTap: () => _scrollBy(180),
               child: Container(
-                margin: EdgeInsets.only(left: 4.w, right: 8.w),
+                margin: EdgeInsets.only(left: 4.w, right: 8.w, top: 17.r),
                 width: 30.r,
                 height: 30.r,
                 decoration: const BoxDecoration(

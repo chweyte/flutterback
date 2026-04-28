@@ -21,17 +21,6 @@ class FavoritesScreen extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 38.r, height: 38.r,
-                      decoration: const BoxDecoration(
-                          color: AppColors.surface, shape: BoxShape.circle),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16.r, color: AppColors.textPrimary),
-                    ),
-                  ),
-                  SizedBox(width: 16.w),
                   Text(
                     'favorites'.tr(),
                     style: TextStyle(
@@ -55,7 +44,7 @@ class FavoritesScreen extends StatelessWidget {
                               size: 60.r, color: AppColors.textLight),
                           SizedBox(height: 16.h),
                           Text(
-                            'Appuyez sur Ã¢ÂÂ¤ pour ajouter des favoris',
+                            'no_favorites'.tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: AppColors.textSecondary,

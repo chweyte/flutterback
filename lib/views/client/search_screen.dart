@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/commerce/category_model.dart';
 import '../../models/commerce/product_model.dart';
 import '../../views/widgets/product_card_widget.dart';
+import '../../views/widgets/category_chip_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -55,20 +56,6 @@ class _SearchScreenState extends State<SearchScreen> {
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 12.h),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 38.r,
-                      height: 38.r,
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 16.r, color: AppColors.textPrimary),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
                   Expanded(
                     child: Container(
                       height: 44.h,
@@ -85,7 +72,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Expanded(
                             child: TextField(
                               controller: _controller,
-                              autofocus: true,
+                              autofocus: false,
                               onChanged: (v) =>
                                   setState(() => _query = v),
                               decoration: InputDecoration(
@@ -130,38 +117,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 itemCount: context.watch<CategoryService>().all.length,
                 itemBuilder: (ctx, i) {
                   final selected = _selectedCategory == i;
-                  return GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedCategory = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      margin: EdgeInsets.only(right: 8.w),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 12.w, vertical: 7.h),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.surface,
-                        borderRadius: BorderRadius.circular(20.r),
-                        border: Border.all(
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.border,
-                        ),
-                      ),
-                      child: Text(
-                        context.watch<CategoryService>().all[i].labelKey.tr(),
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
+                  return CategoryChipWidget(
+                    category: context.watch<CategoryService>().all[i],
+                    isSelected: selected,
+                    onTap: () => setState(() => _selectedCategory = i),
                   );
                 },
               ),
@@ -180,7 +139,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               size: 48.r, color: AppColors.textLight),
                           SizedBox(height: 12.h),
                           Text(
-                            'Aucun rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sultat trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©',
+                            'no_results_found'.tr(),
                             style: TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 14.sp),

@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../controllers/route_transitions.dart';
-import '../landing_screen.dart';
+import '../login_screen.dart';
 import '../../controllers/auth_service.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -158,7 +158,7 @@ class SettingsScreen extends StatelessWidget {
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,
-                      SlidePageRoute(page: LandingScreen()),
+                      SlidePageRoute(page: LoginScreen()),
                     );
                   }
                 },

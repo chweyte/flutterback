@@ -46,6 +46,8 @@
   "order_now": "اطلب الآن",
   "no_products_in_category": "لا توجد منتجات في هذه الفئة",
   "no_products_available": "لا توجد منتجات متاحة",
+  "no_favorites": "اضغط على القلب لإضافة المفضلة",
+  "no_results_found": "لم يتم العثور على نتائج",
   "products": "المنتجات",
   "explore_more": "استكشف المزيد",
   "categories_list": {

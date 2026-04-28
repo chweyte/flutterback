@@ -23,23 +23,6 @@ class CartScreen extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
                   child: Row(
                     children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 38.r,
-                          height: 38.r,
-                          decoration: const BoxDecoration(
-                            color: AppColors.surface,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 16.r,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
                       Text(
                         'my_cart'.tr(),
                         style: TextStyle(
