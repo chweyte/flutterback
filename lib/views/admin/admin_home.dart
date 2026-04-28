@@ -4,6 +4,7 @@ import '../../controllers/route_transitions.dart';
 import '../landing_screen.dart';
 
 class AdminHome extends StatelessWidget {
+  const AdminHome({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(

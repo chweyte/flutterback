@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:toastification/toastification.dart';
@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'firebase_options.dart';
 import 'views/landing_screen.dart';
+import 'views/login_screen.dart';
 import 'views/client/client_home.dart';
 import 'views/admin/admin_home.dart';
 import 'views/commercant/commercant_home.dart';
@@ -21,6 +22,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool hasSeenLanding = prefs.getBool('has_seen_landing') ?? false;
 
   // Initialisation des services connectés à Firestore
   ProductService.instance.initialize();
@@ -38,19 +42,13 @@ void main() async {
         supportedLocales: const [Locale('fr'), Locale('ar'), Locale('en')],
         path: 'assets/translations',
         fallbackLocale: const Locale('fr'),
-        child: const MyApp(),
+        child: MyApp(hasSeenLanding: hasSeenLanding),
       ),
     ),
   );
 }
 
 // Global scroll behavior
-// AppliquÃƒÂ© ÃƒÂ  toute l'app : supprime l'effet ÃƒÂ©lastique/rebond sur tous les
-// widgets scrollables (ListView, CustomScrollView, SingleChildScrollViewÃ¢â‚¬Â¦)
-// sans avoir ÃƒÂ  rÃƒÂ©pÃƒÂ©ter physics: sur chaque widget.
-// Ãƒâ€°tend MaterialScrollBehavior (pas ScrollBehavior) pour garder toute la
-// configuration des gestes tactiles Android. On remplace juste la physique
-// pour supprimer le rebond ÃƒÂ©lastique et l'indicateur de surscroll.
 class _NoOverscrollBehavior extends MaterialScrollBehavior {
   const _NoOverscrollBehavior();
 
@@ -67,7 +65,8 @@ class _NoOverscrollBehavior extends MaterialScrollBehavior {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool hasSeenLanding;
+  const MyApp({super.key, required this.hasSeenLanding});
 
   @override
   Widget build(BuildContext context) {
@@ -84,9 +83,8 @@ class MyApp extends StatelessWidget {
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
             locale: context.locale,
-            // Fix global : ClampingScrollPhysics pour toute l'application
             scrollBehavior: const _NoOverscrollBehavior(),
-            home: const AuthWrapper(),
+            home: AuthWrapper(initialHasSeenLanding: hasSeenLanding),
           ),
         );
       },
@@ -94,8 +92,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
+class AuthWrapper extends StatefulWidget {
+  final bool initialHasSeenLanding;
+  const AuthWrapper({super.key, required this.initialHasSeenLanding});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  Future<String?>? _userRoleFuture;
+  User? _lastUser;
+  late Stream<User?> _authStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _authStream = FirebaseAuth.instance.authStateChanges();
+  }
 
   Future<String?> _getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
@@ -105,41 +119,56 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _authStream,
       builder: (context, authSnapshot) {
-        if (authSnapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
+        // If we don't have auth data yet, we default to the most likely screen
+        // rather than showing a jarring loading spinner.
         final user = authSnapshot.data;
+        
         if (user == null) {
-          return LandingScreen();
+          // If the stream is waiting and we have no data, we still show Login/Landing
+          // to avoid a black screen or spinner flicker.
+          if (!widget.initialHasSeenLanding) {
+            return const LandingScreen();
+          }
+          return const LoginScreen();
         }
 
         // User is authenticated, now check role-based routing
+        if (user != _lastUser) {
+          _lastUser = user;
+          _userRoleFuture = _getUserRole();
+        }
+
         return FutureBuilder<String?>(
-          future: _getUserRole(),
+          future: _userRoleFuture,
           builder: (context, roleSnapshot) {
-            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+            // Even for roles, we avoid a full-page spinner if possible.
+            // But role check is usually necessary before showing Home.
+            if (roleSnapshot.connectionState == ConnectionState.waiting && !roleSnapshot.hasData) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
 
             final role = roleSnapshot.data;
-            if (role == 'admin') return AdminHome();
-            if (role == 'commercant') return CommercantHome();
+            if (role == 'admin') return const AdminHome();
+            if (role == 'commercant') return const CommercantHome();
 
-            // Default to ClientHome for standard users with verification check
+            // Client verification check
             if (user.emailVerified) {
               return const ClientHome();
             }
-            return LandingScreen();
+            
+            // If not verified, stay on Login (which handles verification states)
+            // instead of jumping back to Landing.
+            return const LoginScreen();
           },
         );
       },
     );
   }
 }
+
+
+

@@ -1,13 +1,16 @@
+import '../core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../controllers/route_transitions.dart';
 
 class LandingScreen extends StatelessWidget {
+  const LandingScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F9), // Light background
+      backgroundColor: AppColors.background, // Light background
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 30.0.w, vertical: 40.0.h),
@@ -21,7 +24,7 @@ class LandingScreen extends StatelessWidget {
                 child: Icon(
                   Icons.shopping_bag_outlined,
                   size: 150.r,
-                  color: const Color(0xFF007AFF), // Blue primary
+                  color: AppColors.primary, // Blue primary
                 ),
               ),
               SizedBox(height: 50.h),
@@ -30,7 +33,7 @@ class LandingScreen extends StatelessWidget {
                 'Discover top products\nand start shopping\ntoday',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E293B), // Slate 800
+                  color: AppColors.textPrimary, // Slate 800
                   fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
                   height: 1.3,
@@ -42,7 +45,7 @@ class LandingScreen extends StatelessWidget {
                 'Start your shopping journey and unlock new\ndeals',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF64748B), // Slate 500
+                  color: AppColors.textSecondary, // Slate 500
                   fontSize: 14.sp,
                   height: 1.5,
                 ),
@@ -51,30 +54,32 @@ class LandingScreen extends StatelessWidget {
               // Get started button
               SizedBox(
                 width: double.infinity,
-                height: 50.h,
+                height: 42.h,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF007AFF), Color(0xFF0055FF)],
+                      colors: [AppColors.primary, AppColors.primary],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushAndRemoveUntil(
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('has_seen_landing', true);
+                      Navigator.pushReplacement(
                         context,
-                        SlidePageRoute(page: LoginScreen()),
-                        (route) => false,
+                        SlidePageRoute(page: const LoginScreen()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
+                      padding: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
                     child: Text(
