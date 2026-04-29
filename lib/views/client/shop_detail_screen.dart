@@ -117,17 +117,18 @@ class ShopDetailScreen extends StatelessWidget {
                         iconColor: AppColors.primary,
                         label: shop.categoryIds.isNotEmpty
                             ? context
-                                  .read<CategoryService>()
-                                  .all
-                                  .firstWhere(
-                                    (c) => c.id == shop.categoryIds.first,
-                                    orElse: () => CategoryModel(
-                                      id: 0,
-                                      name: 'Unknown',
-                                      labelKey: 'unknown',
-                                    ),
-                                  )
-                                  .name
+                                .read<CategoryService>()
+                                .all
+                                .firstWhere(
+                                  (c) => c.id == shop.categoryIds.first,
+                                  orElse: () => const CategoryModel(
+                                    id: 0,
+                                    labelKey: 'unknown',
+                                    name: 'Unknown',
+                                    icon: Icons.help_outline,
+                                  ),
+                                )
+                                .name ?? 'Unknown'
                             : 'no_category'.tr(),
                       ),
                       SizedBox(width: 10.w),
