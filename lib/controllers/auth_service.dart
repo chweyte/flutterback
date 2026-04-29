@@ -13,6 +13,30 @@ class AuthService {
     await _supabase.auth.signOut();
   }
 
+  // Generic Sign In
+  Future<User?> signIn(String email, String password) async {
+    final response = await _supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+    return response.user;
+  }
+
+  // Get User Role
+  Future<String?> getUserRole(String uid) async {
+    try {
+      final data = await _supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', uid)
+          .maybeSingle();
+      return data?['role'];
+    } catch (e) {
+      print('Error getting user role: $e');
+      return null;
+    }
+  }
+
   // Connexion Admin
   Future<String?> loginAdmin(String email, String password) async {
     try {
@@ -83,6 +107,46 @@ class AuthService {
     }
   }
 
+  // --- GOOGLE OAUTH ---
+  Future<void> signInWithGoogle() async {
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        // redirectTo: 'io.supabase.flutter://login-callback', // Set this in Supabase dashboard
+      );
+    } catch (e) {
+      print('=== ERREUR GOOGLE SIGNIN === : $e');
+      rethrow;
+    }
+  }
+
+  // --- OTP SIGN-IN (Email) ---
+  Future<void> sendOtp(String email) async {
+    try {
+      await _supabase.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+      );
+    } catch (e) {
+      print('=== ERREUR ENVOI OTP === : $e');
+      rethrow;
+    }
+  }
+
+  Future<AuthResponse> verifyOtp(String email, String token) async {
+    try {
+      final response = await _supabase.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.signup, // Use OtpType.magiclink for login if needed
+      );
+      return response;
+    } catch (e) {
+      print('=== ERREUR VERIFICATION OTP === : $e');
+      rethrow;
+    }
+  }
+
   // Changer le code du commerçant
   Future<void> changerCodeCommercant(String id, String nouveauCode) async {
     await _supabase.from('commercants').update({
@@ -92,18 +156,25 @@ class AuthService {
   }
 
   // Inscription Client
-  Future<String?> signupClient(String email, String telephone, String password) async {
+  Future<String?> signupClient({
+    required String email,
+    required String password,
+    required String fullname,
+    String? telephone,
+  }) async {
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'telephone': telephone},
+        data: {
+          'fullname': fullname,
+          'telephone': telephone ?? '',
+        },
       );
       
       final user = response.user;
       if (user == null) return null;
 
-      // Supabase handles email verification automatically if configured
       return user.id;
     } catch (e) {
       print('=== ERREUR INSCRIPTION === : $e');
@@ -122,14 +193,14 @@ class AuthService {
       final user = response.user;
       if (user == null) return null;
 
-      if (user.emailConfirmedAt == null) {
-        throw const AuthException(
-          'Veuillez vérifier votre email via le lien envoyé avant de vous connecter.',
-        );
-      }
+      // if (user.emailConfirmedAt == null) {
+      //   throw const AuthException(
+      //     'Veuillez vérifier votre email via le lien envoyé avant de vous connecter.',
+      //   );
+      // }
 
-      // S'assurer que le profil existe
-      await ensureClientProfileExists(user.id, email);
+      // S'assurer que le profil existe (managed by DB trigger now, but good to have)
+      await ensureClientProfileExists(user.id, email, user.userMetadata?['fullname'] ?? '');
 
       return user.id;
     } catch (e) {
@@ -150,27 +221,29 @@ class AuthService {
   }
 
   // Création du profil au moment de la vérification
-  Future<void> ensureClientProfileExists(String uid, String email) async {
+  Future<void> ensureClientProfileExists(String uid, String email, String fullname) async {
     final response = await _supabase
-        .from('clients')
+        .from('profiles')
         .select()
         .eq('id', uid)
         .maybeSingle();
 
     if (response == null) {
-      await _supabase.from('clients').insert({
-        'id': uid,
-        'email': email,
-        'telephone': '',
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      
-      // Also ensure role is set in profiles
+      // Insert in profiles (trigger usually does this, but for legacy users)
       await _supabase.from('profiles').upsert({
         'id': uid,
         'email': email,
+        'fullname': fullname,
         'role': 'client',
+      });
+      
+      // Insert in clients
+      await _supabase.from('clients').upsert({
+        'id': uid,
+        'email': email,
+        'fullname': fullname,
+        'telephone': '',
       });
     }
   }
-}
+}

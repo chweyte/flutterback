@@ -17,6 +17,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  static final _fullnameController = TextEditingController();
   static final _emailController = TextEditingController();
   static final _passwordController = TextEditingController();
   static String _selectedRole = 'client'; // 'client' or 'commercant'
@@ -102,9 +103,9 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       if (_selectedRole == 'client') {
         String? uid = await _auth.signupClient(
-          email,
-          "", // Phone number removed intentionally
-          password,
+          email: email,
+          password: password,
+          fullname: _fullnameController.text.trim(),
         );
         if (uid != null) {
           _lastSubmittedEmail = email;
@@ -127,14 +128,14 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     setState(() => _loading = false);
   }
-
   void _showVerificationBottomSheet() {
-    bool isChecking = false;
+    bool isVerifying = false;
+    final otpController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      isDismissible: true,
+      isDismissible: false, // Don't allow closing until verified or explicitly cancelled
       enableDrag: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
@@ -142,7 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
           builder: (context, setBottomSheetState) {
             return Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24.h,
                 left: 24.w,
                 right: 24.w,
                 top: 24.h,
@@ -155,7 +156,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Drag handle
                   Center(
                     child: Container(
                       width: 40.w,
@@ -174,14 +174,14 @@ class _SignupScreenState extends State<SignupScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.mark_email_unread_outlined,
+                      Icons.vibration_outlined,
                       size: 48.r,
                       color: AppColors.primary,
                     ),
                   ),
                   SizedBox(height: 16.h),
                   Text(
-                    'Verify your email',
+                    'Verification Code',
                     style: TextStyle(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
@@ -190,7 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'We sent a verification link to your email. Please click the link to verify your account and then continue.',
+                    'Please enter the 6-digit code sent to\n${_emailController.text.trim()}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.textSecondary,
@@ -198,90 +198,102 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                   SizedBox(height: 24.h),
+                  // OTP Input Field
+                  TextField(
+                    controller: otpController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    maxLength: 6,
+                    style: TextStyle(
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 10,
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      counterText: "",
+                      hintText: "000000",
+                      hintStyle: TextStyle(color: AppColors.textLight.withOpacity(0.3)),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
                   SizedBox(
                     width: double.infinity,
-                    height: 42.h,
+                    height: 50.h,
                     child: ElevatedButton(
-                      onPressed: isChecking
+                      onPressed: isVerifying
                           ? null
                           : () async {
-                              setBottomSheetState(() => isChecking = true);
-                              final user = Supabase.instance.client.auth.currentUser;
-                              await Supabase.instance.client.auth.refreshSession();
-                              final refreshedUser = Supabase.instance.client.auth.currentUser;
+                              final code = otpController.text.trim();
+                              if (code.length != 6) {
+                                _showToast('Please enter a 6-digit code', ToastificationType.warning);
+                                return;
+                              }
 
-                              if (refreshedUser != null && refreshedUser.emailConfirmedAt != null) {
-                                await AuthService().ensureClientProfileExists(
-                                  refreshedUser.id,
-                                  refreshedUser.email ?? '',
+                              setBottomSheetState(() => isVerifying = true);
+                              try {
+                                final response = await _auth.verifyOtp(
+                                  _emailController.text.trim(),
+                                  code,
                                 );
-                                Navigator.pop(context); // close bottom sheet
-                                Navigator.pushReplacement(
-                                  this.context,
-                                  SlidePageRoute(page: ClientHome()),
-                                );
-                                _showToast(
-                                  'Email verified successfully!',
-                                  ToastificationType.success,
-                                );
-                              } else {
-                                setBottomSheetState(() => isChecking = false);
-                                _showToast(
-                                  'Email not verified yet. Please check your inbox.',
-                                  ToastificationType.warning,
-                                );
+
+                                if (response.user != null) {
+                                  await _auth.ensureClientProfileExists(
+                                    response.user!.id,
+                                    response.user!.email ?? '',
+                                    _fullnameController.text.trim(),
+                                  );
+                                  
+                                  Navigator.pop(context); // Close sheet
+                                  Navigator.pushReplacement(
+                                    this.context,
+                                    SlidePageRoute(page: ClientHome()),
+                                  );
+                                  _showToast('Welcome!', ToastificationType.success);
+                                }
+                              } catch (e) {
+                                setBottomSheetState(() => isVerifying = false);
+                                _showToast('Invalid or expired code', ToastificationType.error);
                               }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                         elevation: 0,
-                        splashFactory: NoSplash.splashFactory,
-                        shadowColor: Colors.transparent,
                       ),
-                      child: isChecking
+                      child: isVerifying
                           ? SizedBox(
-                              height: 18.r,
-                              width: 18.r,
-                              child: const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
+                              height: 20.r,
+                              width: 20.r,
+                              child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : Text(
-                              "I've verified my email",
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              'Verify Account',
+                              style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.w600),
                             ),
                     ),
                   ),
                   SizedBox(height: 16.h),
                   GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: (_resendCooldown > 0 || isChecking)
+                    onTap: _resendCooldown > 0
                         ? null
-                        : () {
-                            Supabase.instance.client.auth.resend(
-                              type: OtpType.signup,
-                              email: _emailController.text.trim(),
-                            );
-                            _showToast(
-                              'Verification link resent.',
-                              ToastificationType.info,
-                            );
-                            setBottomSheetState(() {
-                              _resendCooldown = 300; // 5 minutes
-                            });
-                            _resendTimer?.cancel();
-                            _resendTimer = Timer.periodic(
-                              const Duration(seconds: 1),
-                              (timer) {
+                        : () async {
+                            try {
+                              await _auth.sendOtp(_emailController.text.trim());
+                              _showToast('Code resent!', ToastificationType.info);
+                              setBottomSheetState(() => _resendCooldown = 60);
+                              _resendTimer?.cancel();
+                              _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
                                 setBottomSheetState(() {
                                   if (_resendCooldown > 0) {
                                     _resendCooldown--;
@@ -289,32 +301,20 @@ class _SignupScreenState extends State<SignupScreen> {
                                     timer.cancel();
                                   }
                                 });
-                              },
-                            );
+                              });
+                            } catch (e) {
+                              _showToast('Error resending code', ToastificationType.error);
+                            }
                           },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 8.0.h,
-                        horizontal: 16.0.w,
-                      ),
-                      child: Text(
-                        _resendCooldown > 0
-                            ? 'Resend link ($_formattedCooldown)'
-                            : 'Resend link',
-                        style: TextStyle(
-                          color: _resendCooldown > 0
-                              ? AppColors.textLight
-                              : AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.sp,
-                          decoration: _resendCooldown > 0
-                              ? TextDecoration.none
-                              : TextDecoration.underline,
-                        ),
+                    child: Text(
+                      _resendCooldown > 0 ? 'Resend code in $_resendCooldown s' : 'Resend Code',
+                      style: TextStyle(
+                        color: _resendCooldown > 0 ? AppColors.textLight : AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: _resendCooldown > 0 ? TextDecoration.none : TextDecoration.underline,
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.h),
                 ],
               ),
             );
@@ -445,6 +445,61 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         SizedBox(height: 24.h),
+
+                        // Full Name field
+                        Text(
+                          'Full Name',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        SizedBox(
+                          height: 50.h,
+                          child: TextField(
+                            controller: _fullnameController,
+                            style: const TextStyle(color: AppColors.textPrimary),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 0,
+                              ),
+                              hintText: 'e.g. John Doe',
+                              hintStyle: const TextStyle(
+                                color: AppColors.textLight,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.badge_outlined,
+                                color: AppColors.textLight,
+                                size: 24.r,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: AppColors.border,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20.h),
 
                         // Email field
                         Text(
@@ -712,7 +767,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           width: double.infinity,
                           height: 42.h,
                           child: ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _auth.signInWithGoogle(),
                             icon: SvgPicture.asset(
                               'assets/google.svg',
                               width: 22.w,

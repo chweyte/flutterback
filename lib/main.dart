@@ -11,6 +11,7 @@ import 'views/admin/admin_home.dart';
 import 'views/commercant/commercant_home.dart';
 import 'core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'controllers/auth_service.dart';
 
 import 'package:provider/provider.dart';
 import 'controllers/product_service.dart';
@@ -20,7 +21,7 @@ import 'controllers/category_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  
+
   await dotenv.load(fileName: ".env");
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
@@ -115,9 +116,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
     _authStream = Supabase.instance.client.auth.onAuthStateChange;
   }
 
-  Future<String?> _getUserRole() async {
+  Future<String?> _getUserRole(String uid) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_role');
+    String? role = prefs.getString('user_role');
+
+    if (role == null) {
+      // Fetch from database
+      role = await AuthService().getUserRole(uid);
+      if (role != null) {
+        await prefs.setString('user_role', role);
+      }
+    }
+    return role;
   }
 
   @override
@@ -138,7 +148,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         // User is authenticated, now check role-based routing
         if (user != _lastUser) {
           _lastUser = user;
-          _userRoleFuture = _getUserRole();
+          _userRoleFuture = _getUserRole(user.id);
         }
 
         return FutureBuilder<String?>(
