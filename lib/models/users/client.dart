@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Client {
   final String id;
   final String email;
@@ -18,7 +16,9 @@ class Client {
       id: id,
       email: data['email'] ?? '',
       telephone: data['telephone'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: data['created_at'] != null 
+          ? DateTime.parse(data['created_at']) 
+          : DateTime.now(),
     );
   }
 
@@ -26,7 +26,7 @@ class Client {
     return {
       'email': email,
       'telephone': telephone,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/commerce/product_model.dart';
 
 class ProductService extends ChangeNotifier {
@@ -15,27 +15,33 @@ class ProductService extends ChangeNotifier {
   void initialize() {
     if (_isInit) return;
     _isInit = true;
-    FirebaseFirestore.instance.collection('products').snapshots().listen((
-      snapshot,
-    ) {
-      _products = snapshot.docs
-          .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
-          .toList();
+    
+    Supabase.instance.client
+        .from('products')
+        .stream(primaryKey: ['id'])
+        .listen((data) {
+      _products = data.map((map) => ProductModel.fromMap(map, map['id'].toString())).toList();
       isLoading = false;
       notifyListeners();
     });
   }
 
   Future<void> add(ProductModel product) async {
-    await FirebaseFirestore.instance.collection('products').add(product.toMap());
+    await Supabase.instance.client.from('products').insert(product.toMap());
   }
 
   Future<void> updateProduct(ProductModel product) async {
-    await FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toMap());
+    await Supabase.instance.client
+        .from('products')
+        .update(product.toMap())
+        .eq('id', product.id);
   }
 
   Future<void> deleteProduct(String productId) async {
-    await FirebaseFirestore.instance.collection('products').doc(productId).delete();
+    await Supabase.instance.client
+        .from('products')
+        .delete()
+        .eq('id', productId);
   }
 
   List<ProductModel> byShop(String shopId) =>

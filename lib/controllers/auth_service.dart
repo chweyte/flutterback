@@ -1,49 +1,43 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/users/commercant.dart';
 import 'merchant_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // DÃƒÂ©connexion globale
+  // Déconnexion globale
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    await _auth.signOut();
+    await _supabase.auth.signOut();
   }
 
   // Connexion Admin
   Future<String?> loginAdmin(String email, String password) async {
     try {
-      // 1. Authentification via Firebase Auth
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      // 1. Authentification via Supabase Auth
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
-      // 2. Vérifier si l'utilisateur est bien dans la collection 'admins'
-      DocumentSnapshot adminDoc = await _db.collection('admins').doc(result.user!.uid).get();
-      
-      // Alternative : si l'admin est identifié par email dans Firestore
-      if (!adminDoc.exists) {
-        QuerySnapshot query = await _db
-            .collection('admins')
-            .where('email', isEqualTo: email)
-            .get();
-        if (query.docs.isNotEmpty) {
-          adminDoc = query.docs.first;
-        }
-      }
+      final user = response.user;
+      if (user == null) return null;
 
-      if (adminDoc.exists) {
+      // 2. Vérifier si l'utilisateur est bien dans la table 'profiles' ou 'admins'
+      final profileData = await _supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+      if (profileData['role'] == 'admin') {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_role', 'admin');
         return 'admin';
       } else {
-        await _auth.signOut();
+        await _supabase.auth.signOut();
         return null;
       }
     } catch (e) {
@@ -55,25 +49,32 @@ class AuthService {
   // Connexion Commerçant
   Future<Commercant?> loginCommercant(String email, String password) async {
     try {
-      // 1. Authentification via Firebase Auth
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      // 1. Authentification via Supabase Auth
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
-      // 2. Récupérer les infos dans Firestore
-      DocumentSnapshot doc = await _db.collection('commercants').doc(result.user!.uid).get();
+      final user = response.user;
+      if (user == null) return null;
 
-      if (doc.exists) {
+      // 2. Récupérer les infos dans la table 'commercants'
+      final doc = await _supabase
+          .from('commercants')
+          .select()
+          .eq('id', user.id)
+          .single();
+
+      if (doc != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_role', 'commercant');
-        await prefs.setString('user_id', doc.id);
+        await prefs.setString('user_id', user.id);
         
-        await MerchantService.instance.loadMerchantShop(doc.id);
+        await MerchantService.instance.loadMerchantShop(user.id);
         
-        return Commercant.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+        return Commercant.fromMap(user.id, doc);
       } else {
-        await _auth.signOut();
+        await _supabase.auth.signOut();
         return null;
       }
     } catch (e) {
@@ -82,75 +83,93 @@ class AuthService {
     }
   }
 
-  // Changer le code du commerÃƒÂ§ant
+  // Changer le code du commerçant
   Future<void> changerCodeCommercant(String id, String nouveauCode) async {
-    await _db.collection('commercants').doc(id).update({
+    await _supabase.from('commercants').update({
       'code': nouveauCode,
-      'premiereConnexion': false,
-    });
+      'premiere_connexion': false,
+    }).eq('id', id);
   }
 
   // Inscription Client
   Future<String?> signupClient(String email, String telephone, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      final response = await _supabase.auth.signUp(
         email: email,
         password: password,
+        data: {'telephone': telephone},
       );
       
-      // Envoi de l'email de vÃƒÂ©rification
-      await result.user!.sendEmailVerification();
+      final user = response.user;
+      if (user == null) return null;
 
-      return result.user!.uid;
+      // Supabase handles email verification automatically if configured
+      return user.id;
     } catch (e) {
       print('=== ERREUR INSCRIPTION === : $e');
-      throw e;
+      rethrow;
     }
   }
 
   // Connexion Client
   Future<String?> loginClient(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      if (!result.user!.emailVerified) {
-        throw FirebaseAuthException(
-          code: 'unverified-email', 
-          message: 'Veuillez vÃƒÂ©rifier votre email via le lien envoyÃƒÂ© avant de vous connecter.'
+
+      final user = response.user;
+      if (user == null) return null;
+
+      if (user.emailConfirmedAt == null) {
+        throw const AuthException(
+          'Veuillez vérifier votre email via le lien envoyé avant de vous connecter.',
         );
       }
 
-      // S'assurer que le profil Firestore existe
-      await ensureClientProfileExists(result.user!.uid, email);
+      // S'assurer que le profil existe
+      await ensureClientProfileExists(user.id, email);
 
-      return result.user!.uid;
+      return user.id;
     } catch (e) {
-      if (e is FirebaseAuthException && e.code == 'unverified-email') {
-        throw e;
+      if (e is AuthException) {
+        rethrow;
       }
       return null;
     }
   }
 
-  // RÃƒÂ©initialisation mot de passe
+  // Réinitialisation mot de passe
   Future<void> resetPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _supabase.auth.resetPasswordForEmail(email);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
-  // CrÃƒÂ©ation du profil Firebase au moment de la vÃƒÂ©rification
+  // Création du profil au moment de la vérification
   Future<void> ensureClientProfileExists(String uid, String email) async {
-    var doc = await _db.collection('clients').doc(uid).get();
-    if (!doc.exists) {
-      await _db.collection('clients').doc(uid).set({
+    final response = await _supabase
+        .from('clients')
+        .select()
+        .eq('id', uid)
+        .maybeSingle();
+
+    if (response == null) {
+      await _supabase.from('clients').insert({
+        'id': uid,
         'email': email,
         'telephone': '',
-        'createdAt': DateTime.now(),
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      
+      // Also ensure role is set in profiles
+      await _supabase.from('profiles').upsert({
+        'id': uid,
+        'email': email,
+        'role': 'client',
       });
     }
   }

@@ -1,4 +1,4 @@
-﻿class ProductModel {
+class ProductModel {
   final String id;
   final String name;
   final String price;
@@ -30,14 +30,14 @@
       id: documentId,
       name: map['name'] ?? '',
       price: map['price'] ?? '',
-      priceValue: map['priceValue'] ?? 0,
-      isDark: map['isDark'] ?? false,
-      imageUrl: map['imageUrl'],
-      imageAsset: map['imageAsset'],
+      priceValue: map['price_value'] ?? 0,
+      isDark: map['is_dark'] ?? false,
+      imageUrl: map['image_url'],
+      imageAsset: map['image_asset'],
       category: map['category'] ?? '',
-      categoryTitle: map['categoryTitle'],
+      categoryTitle: map['category_title'],
       sizes: map['sizes'] != null ? List<String>.from(map['sizes']) : null,
-      shopId: map['shopId'] ?? '',
+      shopId: map['shop_id'] ?? '',
     );
   }
 
@@ -45,14 +45,14 @@
     return {
       'name': name,
       'price': price,
-      'priceValue': priceValue,
-      'isDark': isDark,
-      'imageUrl': imageUrl,
-      'imageAsset': imageAsset,
+      'price_value': priceValue,
+      'is_dark': isDark,
+      'image_url': imageUrl,
+      'image_asset': imageAsset,
       'category': category,
-      'categoryTitle': categoryTitle,
+      'category_title': categoryTitle,
       'sizes': sizes,
-      'shopId': shopId,
+      'shop_id': shopId,
     };
   }
 }

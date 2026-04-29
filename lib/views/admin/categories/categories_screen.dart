@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../controllers/admin_controller.dart';
 import 'package:toastification/toastification.dart';
@@ -320,16 +320,16 @@ class CategoriesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: AdminController().getCategoriesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final categories = snapshot.data ?? [];
 
-          if (docs.isEmpty) {
+          if (categories.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -356,17 +356,17 @@ class CategoriesScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
+            itemCount: categories.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final data = docs[i].data() as Map<String, dynamic>;
-              final id = docs[i].id;
-              final name = data['name'] ?? data['labelKey'] ?? '—';
+              final data = categories[i];
+              final id = data['id'].toString();
+              final name = data['name'] ?? data['label_key'] ?? '—';
               final iconData = IconData(
-                data['iconCodePoint'] ?? Icons.category_rounded.codePoint,
-                fontFamily: data['iconFontFamily'] ?? 'MaterialIcons',
+                data['icon_code_point'] ?? Icons.category_rounded.codePoint,
+                fontFamily: data['icon_font_family'] ?? 'MaterialIcons',
               );
-              final imageAsset = data['imageAsset'] as String?;
+              final imageAsset = data['image_asset'] as String?;
 
               return Container(
                 decoration: BoxDecoration(
@@ -390,10 +390,7 @@ class CategoriesScreen extends StatelessWidget {
                               imageAsset,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                final localFile = File('c:\\Users\\kaber\\Downloads\\flutterback\\$imageAsset');
-                                if (localFile.existsSync()) {
-                                  return Image.file(localFile, fit: BoxFit.cover);
-                                }
+                                // Try fallback for local preview
                                 return Icon(iconData, color: AppColors.primary, size: 22);
                               },
                             ),

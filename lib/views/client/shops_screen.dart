@@ -231,16 +231,16 @@ class _ShopImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (shop.imageAsset != null) {
-      return Image.asset(
-        shop.imageAsset!,
+    if (shop.imageUrl != null && shop.imageUrl!.isNotEmpty) {
+      return Image.network(
+        shop.imageUrl!,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _LogoPlaceholder(name: shop.name),
       );
     }
-    if (shop.imageUrl != null) {
-      return Image.network(
-        shop.imageUrl!,
+    if (shop.imageAsset != null && shop.imageAsset!.isNotEmpty) {
+      return Image.asset(
+        shop.imageAsset!,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _LogoPlaceholder(name: shop.name),
       );

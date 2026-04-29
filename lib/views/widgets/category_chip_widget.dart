@@ -81,30 +81,26 @@ class CategoryChipWidget extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    // PrioritÃƒÂ© : asset local > URL rÃƒÂ©seau
-    if (category.imageAsset != null) {
-      // First try to load as a bundled asset
-      // Then fallback to loading as a local file (for newly added assets during dev)
-      final localFile = File('c:\\Users\\kaber\\Downloads\\flutterback\\${category.imageAsset}');
-      
+    // Priority: Supabase Storage URL > local asset
+    if (category.imageUrl != null && category.imageUrl!.isNotEmpty) {
+      return Image.network(
+        category.imageUrl!,
+        fit: BoxFit.cover,
+        loadingBuilder: (_, child, progress) =>
+            progress == null ? child : _iconFallback(),
+        errorBuilder: (_, __, ___) => _iconFallback(),
+      );
+    }
+    
+    if (category.imageAsset != null && category.imageAsset!.isNotEmpty) {
       return Image.asset(
         category.imageAsset!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          if (localFile.existsSync()) {
-            return Image.file(localFile, fit: BoxFit.cover);
-          }
-          return _iconFallback();
-        },
+        errorBuilder: (context, error, stackTrace) => _iconFallback(),
       );
     }
-    return Image.network(
-      category.imageUrl!,
-      fit: BoxFit.cover,
-      loadingBuilder: (_, child, progress) =>
-          progress == null ? child : _iconFallback(),
-      errorBuilder: (_, __, ___) => _iconFallback(),
-    );
+    
+    return _iconFallback();
   }
 
   Widget _iconFallback() => Container(

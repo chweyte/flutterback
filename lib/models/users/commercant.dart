@@ -16,7 +16,7 @@ class Commercant {
       id: id,
       email: data['email'] ?? '',
       code: data['code'] ?? '',
-      premiereConnexion: data['premiereConnexion'] ?? true,
+      premiereConnexion: data['premiere_connexion'] ?? true,
     );
   }
 
@@ -24,7 +24,7 @@ class Commercant {
     return {
       'email': email,
       'code': code,
-      'premiereConnexion': premiereConnexion,
+      'premiere_connexion': premiereConnexion,
     };
   }
 }

@@ -1,5 +1,5 @@
-﻿import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/commerce/category_model.dart';
 
 class CategoryService extends ChangeNotifier {
@@ -15,8 +15,12 @@ class CategoryService extends ChangeNotifier {
   void initialize() {
     if (_isInit) return;
     _isInit = true;
-    FirebaseFirestore.instance.collection('categories').snapshots().listen((snapshot) {
-      _categories = snapshot.docs.map((doc) => CategoryModel.fromMap(doc.data(), doc.id)).toList();
+    
+    Supabase.instance.client
+        .from('categories')
+        .stream(primaryKey: ['id'])
+        .listen((data) {
+      _categories = data.map((map) => CategoryModel.fromMap(map, map['id'].toString())).toList();
       isLoading = false;
       notifyListeners();
     });

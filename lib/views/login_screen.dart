@@ -12,7 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:async';
 import '../controllers/route_transitions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toastification/toastification.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -121,14 +121,14 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(context, SlidePageRoute(page: ClientHome()));
         return;
       }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'unverified-email') {
+    } on AuthException catch (e) {
+      if (e.message.contains('vérifier votre email')) {
         setState(() => _loading = false);
         _showVerificationBottomSheet();
         return;
       }
     } catch (e) {
-      // Pour les autres erreurs, on laissera tomber dans l'erreur gÃƒÂ©nÃƒÂ©rique ci-dessous
+      // Pour les autres erreurs, on laissera tomber dans l'erreur générique ci-dessous
     }
 
     // Si on arrive ici, rien n'a marchÃƒÂ©
@@ -540,14 +540,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? null
                           : () async {
                               setBottomSheetState(() => isChecking = true);
-                              User? user = FirebaseAuth.instance.currentUser;
-                              await user?.reload();
-                              user = FirebaseAuth.instance.currentUser;
+                              final user = Supabase.instance.client.auth.currentUser;
+                              await Supabase.instance.client.auth.refreshSession();
+                              final refreshedUser = Supabase.instance.client.auth.currentUser;
 
-                              if (user != null && user.emailVerified) {
+                              if (refreshedUser != null && refreshedUser.emailConfirmedAt != null) {
                                 await AuthService().ensureClientProfileExists(
-                                  user.uid,
-                                  user.email ?? '',
+                                  refreshedUser.id,
+                                  refreshedUser.email ?? '',
                                 );
                                 Navigator.pop(context);
                                 Navigator.pushReplacement(
@@ -601,8 +601,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: (_resendCooldown > 0 || isChecking)
                         ? null
                         : () {
-                            FirebaseAuth.instance.currentUser
-                                ?.sendEmailVerification();
+                            Supabase.instance.client.auth.resend(
+                              type: OtpType.signup,
+                              email: _emailController.text.trim(),
+                            );
                             _showToast(
                               'Verification link resent.',
                               ToastificationType.info,

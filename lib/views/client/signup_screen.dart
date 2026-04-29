@@ -8,7 +8,7 @@ import 'package:flutter/gestures.dart';
 import 'dart:async';
 import '../../controllers/route_transitions.dart';
 import '../login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toastification/toastification.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -37,8 +37,8 @@ class _SignupScreenState extends State<SignupScreen> {
     _passwordController.addListener(_onInputChanged);
     // After the first frame, check if we should automatically show verification
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null && !user.emailVerified) {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null && user.emailConfirmedAt == null) {
         // If the current inputs match the logged in user, reopen the sheet
         if (_emailController.text.trim() == user.email) {
           _showVerificationBottomSheet();
@@ -89,20 +89,13 @@ class _SignupScreenState extends State<SignupScreen> {
     String password = _passwordController.text.trim();
 
     // 1. Check if we currently have an unverified session
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null && !currentUser.emailVerified) {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null && user.emailConfirmedAt == null) {
       // If they changed nothing, just reopen the sheet!
       if (email == _lastSubmittedEmail && password == _lastSubmittedPassword) {
         setState(() => _loading = false);
         _showVerificationBottomSheet();
         return;
-      } else {
-        // They changed the input. Delete the old unverified account!
-        try {
-          await currentUser.delete();
-        } catch (e) {
-          print("Could not delete previous unverified user: $e");
-        }
       }
     }
 
@@ -120,34 +113,15 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       } else {
         _showToast(
-          'Inscription commerÃƒÂ§ant en cours de dÃƒÂ©veloppement.',
+          'Inscription commerçant en cours de développement.',
           ToastificationType.info,
         );
       }
     } catch (e) {
       String errorMsg = e.toString();
 
-      // If we hit already-in-use, let's see if it's their previous unverified account
-      if (errorMsg.contains('email-already-in-use')) {
-        try {
-          UserCredential cred = await FirebaseAuth.instance
-              .signInWithEmailAndPassword(email: email, password: password);
-          if (!cred.user!.emailVerified) {
-            _lastSubmittedEmail = email;
-            _lastSubmittedPassword = password;
-            setState(() => _loading = false);
-            _showVerificationBottomSheet();
-            return; // Successfully reopened!
-          } else {
-            errorMsg = "This account is already verified. Please go to Login.";
-          }
-        } catch (_) {
-          errorMsg = "Email is already in use by another account.";
-        }
-      } else {
-        if (errorMsg.contains(']')) {
-          errorMsg = errorMsg.split(']').last.trim();
-        }
+      if (errorMsg.contains('User already registered')) {
+        errorMsg = "Email is already in use. Please go to Login.";
       }
       _showToast('Erreur : $errorMsg', ToastificationType.error);
     }
@@ -232,16 +206,14 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? null
                           : () async {
                               setBottomSheetState(() => isChecking = true);
-                              User? user = FirebaseAuth.instance.currentUser;
-                              await user?.reload();
-                              user = FirebaseAuth
-                                  .instance
-                                  .currentUser; // get refreshed state
+                              final user = Supabase.instance.client.auth.currentUser;
+                              await Supabase.instance.client.auth.refreshSession();
+                              final refreshedUser = Supabase.instance.client.auth.currentUser;
 
-                              if (user != null && user.emailVerified) {
+                              if (refreshedUser != null && refreshedUser.emailConfirmedAt != null) {
                                 await AuthService().ensureClientProfileExists(
-                                  user.uid,
-                                  user.email ?? '',
+                                  refreshedUser.id,
+                                  refreshedUser.email ?? '',
                                 );
                                 Navigator.pop(context); // close bottom sheet
                                 Navigator.pushReplacement(
@@ -295,8 +267,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     onTap: (_resendCooldown > 0 || isChecking)
                         ? null
                         : () {
-                            FirebaseAuth.instance.currentUser
-                                ?.sendEmailVerification();
+                            Supabase.instance.client.auth.resend(
+                              type: OtpType.signup,
+                              email: _emailController.text.trim(),
+                            );
                             _showToast(
                               'Verification link resent.',
                               ToastificationType.info,

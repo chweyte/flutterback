@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:toastification/toastification.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'firebase_options.dart';
 import 'views/landing_screen.dart';
 import 'views/login_screen.dart';
 import 'views/client/client_home.dart';
@@ -21,12 +20,17 @@ import 'controllers/category_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  await dotenv.load(fileName: ".env");
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
 
   final prefs = await SharedPreferences.getInstance();
   final bool hasSeenLanding = prefs.getBool('has_seen_landing') ?? false;
 
-  // Initialisation des services connectés à Firestore
+  // Initialisation des services
   ProductService.instance.initialize();
   ShopService.instance.initialize();
   CategoryService.instance.initialize();
@@ -103,12 +107,12 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   Future<String?>? _userRoleFuture;
   User? _lastUser;
-  late Stream<User?> _authStream;
+  late Stream<AuthState> _authStream;
 
   @override
   void initState() {
     super.initState();
-    _authStream = FirebaseAuth.instance.authStateChanges();
+    _authStream = Supabase.instance.client.auth.onAuthStateChange;
   }
 
   Future<String?> _getUserRole() async {
@@ -118,16 +122,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
+    return StreamBuilder<AuthState>(
       stream: _authStream,
       builder: (context, authSnapshot) {
-        // If we don't have auth data yet, we default to the most likely screen
-        // rather than showing a jarring loading spinner.
-        final user = authSnapshot.data;
+        final session = Supabase.instance.client.auth.currentSession;
+        final user = session?.user;
 
         if (user == null) {
-          // If the stream is waiting and we have no data, we still show Login/Landing
-          // to avoid a black screen or spinner flicker.
           if (!widget.initialHasSeenLanding) {
             return const LandingScreen();
           }
@@ -143,8 +144,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         return FutureBuilder<String?>(
           future: _userRoleFuture,
           builder: (context, roleSnapshot) {
-            // Even for roles, we avoid a full-page spinner if possible.
-            // But role check is usually necessary before showing Home.
             if (roleSnapshot.connectionState == ConnectionState.waiting &&
                 !roleSnapshot.hasData) {
               return const Scaffold(
@@ -157,12 +156,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
             if (role == 'commercant') return const CommercantHome();
 
             // Client verification check
-            if (user.emailVerified) {
+            if (user.emailConfirmedAt != null) {
               return const ClientHome();
             }
 
-            // If not verified, stay on Login (which handles verification states)
-            // instead of jumping back to Landing.
             return const LoginScreen();
           },
         );

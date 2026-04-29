@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -7,6 +7,7 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final supabase = Supabase.instance.client;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -24,19 +25,19 @@ class AdminDashboard extends StatelessWidget {
           _StatCard(
             label: 'Total Merchants',
             icon: Icons.storefront_rounded,
-            stream: FirebaseFirestore.instance.collection('commercants').snapshots(),
+            stream: supabase.from('commercants').stream(primaryKey: ['id']),
           ),
           const SizedBox(height: 12),
           _StatCard(
             label: 'Total Clients',
             icon: Icons.people_outline_rounded,
-            stream: FirebaseFirestore.instance.collection('clients').snapshots(),
+            stream: supabase.from('clients').stream(primaryKey: ['id']),
           ),
           const SizedBox(height: 12),
           _StatCard(
             label: 'Categories',
             icon: Icons.category_rounded,
-            stream: FirebaseFirestore.instance.collection('categories').snapshots(),
+            stream: supabase.from('categories').stream(primaryKey: ['id']),
           ),
         ],
       ),
@@ -47,7 +48,7 @@ class AdminDashboard extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final IconData icon;
-  final Stream<QuerySnapshot> stream;
+  final Stream<List<Map<String, dynamic>>> stream;
 
   const _StatCard({
     required this.label,
@@ -57,10 +58,10 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snapshot) {
-        final count = snapshot.hasData ? snapshot.data!.docs.length : null;
+        final count = snapshot.hasData ? snapshot.data!.length : null;
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),

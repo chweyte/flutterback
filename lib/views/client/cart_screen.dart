@@ -176,15 +176,15 @@ class _CartTile extends StatelessWidget {
             child: SizedBox(
               width: 60.r,
               height: 60.r,
-              child: item.product.imageAsset != null
-                  ? Image.asset(
-                      item.product.imageAsset!,
+              child: item.product.imageUrl != null && item.product.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      item.product.imageUrl!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _imgFallback(),
                     )
-                  : item.product.imageUrl != null
-                  ? Image.network(
-                      item.product.imageUrl!,
+                  : item.product.imageAsset != null && item.product.imageAsset!.isNotEmpty
+                  ? Image.asset(
+                      item.product.imageAsset!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _imgFallback(),
                     )

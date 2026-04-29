@@ -59,17 +59,17 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Product image Ã¢â‚¬â€ asset local prioritaire sur URL rÃƒÂ©seau
-                      if (widget.product.imageAsset != null)
-                        Image.asset(
-                          widget.product.imageAsset!,
+                      // Product image — network URL from Supabase Storage or asset local fallback
+                      if (widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty)
+                        Image.network(
+                          widget.product.imageUrl!,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) =>
                               _Placeholder(isDark: isDark),
                         )
-                      else if (widget.product.imageUrl != null)
-                        Image.network(
-                          widget.product.imageUrl!,
+                      else if (widget.product.imageAsset != null && widget.product.imageAsset!.isNotEmpty)
+                        Image.asset(
+                          widget.product.imageAsset!,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) =>
                               _Placeholder(isDark: isDark),
@@ -77,7 +77,7 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
                       else
                         _Placeholder(isDark: isDark),
 
-                      // Favorite button Ã¢â‚¬â€œ connected to FavoritesService
+                      // Favorite button — connected to FavoritesService
                       Positioned(
                         top: 8.h,
                         right: 8.w,

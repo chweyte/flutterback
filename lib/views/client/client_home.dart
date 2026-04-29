@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/commerce/category_model.dart';
@@ -118,8 +118,8 @@ class _HomeViewState extends State<_HomeView> {
   int _selectedCategory = 0;
 
   String get _username {
-    final u = FirebaseAuth.instance.currentUser;
-    return u?.displayName ?? u?.email?.split('@').first ?? 'User';
+    final u = Supabase.instance.client.auth.currentUser;
+    return u?.email?.split('@').first ?? 'User';
   }
 
   List<ProductModel> get _visibleProducts {
@@ -684,15 +684,19 @@ class _ShopChip extends StatelessWidget {
 }
 
 Widget _shopImage(ShopModel shop) {
-  if (shop.imageAsset != null) {
-    return Image.asset(shop.imageAsset!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name));
+  if (shop.imageUrl != null && shop.imageUrl!.isNotEmpty) {
+    return Image.network(
+      shop.imageUrl!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name),
+    );
   }
-  if (shop.imageUrl != null) {
-    return Image.network(shop.imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name));
+  if (shop.imageAsset != null && shop.imageAsset!.isNotEmpty) {
+    return Image.asset(
+      shop.imageAsset!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name),
+    );
   }
   return _ShopAvatar(name: shop.name);
 }

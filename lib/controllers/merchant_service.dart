@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/commerce/shop_model.dart';
 
 class MerchantService extends ChangeNotifier {
@@ -26,16 +26,16 @@ class MerchantService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('shops')
-          .where('merchantId', isEqualTo: merchantId)
-          .limit(1)
-          .get();
+      final response = await Supabase.instance.client
+          .from('shops')
+          .select()
+          .eq('merchant_id', merchantId)
+          .maybeSingle();
 
-      if (snapshot.docs.isNotEmpty) {
+      if (response != null) {
         currentShop = ShopModel.fromMap(
-          snapshot.docs.first.data(),
-          snapshot.docs.first.id,
+          response,
+          response['id'].toString(),
         );
       } else {
         currentShop = null;

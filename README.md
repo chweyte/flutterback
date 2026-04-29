@@ -27,9 +27,9 @@ Nous utilisons le package `Provider` (avec `ChangeNotifier`) pour optimiser les 
 *   Partager l'état entre les différentes _Views_ sans utiliser de callbacks passés de widget en widget.
 *   Reconstruire de manière chirurgicale uniquement les portions d'écran nécessitant une mise à jour suite à une modification des données.
 
-### 3. Connexion Évoluée aux Données (Firebase & API)
+### 3. Connexion Évoluée aux Données (Supabase & API)
 L'application ne se repose pas sur des données locales statiques :
-*   **Base de données distante :** Intégration de Firebase (Firestore / Auth) pour conserver les données de façon sécurisée et persistante.
+*   **Base de données distante :** Intégration de Supabase (Database / Auth) pour conserver les données de façon sécurisée et persistante.
 *   **Gestion Asynchrone :** Les appels API transitent par nos _Controllers_ permettant de maintenir l'interface fluide durant les chargements.
 
 ### 4. Internationalisation (Multilingue)

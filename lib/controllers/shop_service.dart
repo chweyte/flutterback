@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/commerce/shop_model.dart';
 
 class ShopService extends ChangeNotifier {
@@ -15,22 +15,25 @@ class ShopService extends ChangeNotifier {
   void initialize() {
     if (_isInit) return;
     _isInit = true;
-    FirebaseFirestore.instance.collection('shops').snapshots().listen((
-      snapshot,
-    ) {
-      _shops = snapshot.docs
-          .map((doc) => ShopModel.fromMap(doc.data(), doc.id))
-          .toList();
+    
+    Supabase.instance.client
+        .from('shops')
+        .stream(primaryKey: ['id'])
+        .listen((data) {
+      _shops = data.map((map) => ShopModel.fromMap(map, map['id'].toString())).toList();
       isLoading = false;
       notifyListeners();
     });
   }
 
   Future<void> addShop(ShopModel shop) async {
-    await FirebaseFirestore.instance.collection('shops').add(shop.toMap());
+    await Supabase.instance.client.from('shops').insert(shop.toMap());
   }
 
   Future<void> updateShop(ShopModel shop) async {
-    await FirebaseFirestore.instance.collection('shops').doc(shop.id).update(shop.toMap());
+    await Supabase.instance.client
+        .from('shops')
+        .update(shop.toMap())
+        .eq('id', shop.id);
   }
 }

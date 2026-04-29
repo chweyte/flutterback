@@ -29,12 +29,12 @@ class ShopModel {
       name: map['name'] ?? '',
       description: map['description'] ?? '',
       category: map['category'] ?? '',
-      categoryTitle: map['categoryTitle'],
-      imageUrl: map['imageUrl'],
-      imageAsset: map['imageAsset'],
+      categoryTitle: map['category_title'],
+      imageUrl: map['image_url'],
+      imageAsset: map['image_asset'],
       rating: (map['rating'] ?? 4.5) * 1.0,
-      reviewCount: map['reviewCount'] ?? 0,
-      merchantId: map['merchantId'],
+      reviewCount: map['review_count'] ?? 0,
+      merchantId: map['merchant_id'],
     );
   }
 
@@ -43,12 +43,12 @@ class ShopModel {
       'name': name,
       'description': description,
       'category': category,
-      'categoryTitle': categoryTitle,
-      'imageUrl': imageUrl,
-      'imageAsset': imageAsset,
+      'category_title': categoryTitle,
+      'image_url': imageUrl,
+      'image_asset': imageAsset,
       'rating': rating,
-      'reviewCount': reviewCount,
-      'merchantId': merchantId,
+      'review_count': reviewCount,
+      'merchant_id': merchantId,
     };
   }
 }

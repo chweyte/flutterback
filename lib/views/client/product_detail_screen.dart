@@ -501,16 +501,16 @@ class _ProductImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (product.imageAsset != null) {
-      return Image.asset(
-        product.imageAsset!,
+    if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      return Image.network(
+        product.imageUrl!,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _imgFallback(),
       );
     }
-    if (product.imageUrl != null) {
-      return Image.network(
-        product.imageUrl!,
+    if (product.imageAsset != null && product.imageAsset!.isNotEmpty) {
+      return Image.asset(
+        product.imageAsset!,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _imgFallback(),
       );
@@ -634,9 +634,9 @@ class _FullscreenImage extends StatelessWidget {
           child: InteractiveViewer(
             minScale: 0.8,
             maxScale: 4.0,
-            child: product.imageAsset != null
-                ? Image.asset(
-                    product.imageAsset!,
+            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                ? Image.network(
+                    product.imageUrl!,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.image_not_supported_outlined,
@@ -644,9 +644,9 @@ class _FullscreenImage extends StatelessWidget {
                       size: 60,
                     ),
                   )
-                : product.imageUrl != null
-                ? Image.network(
-                    product.imageUrl!,
+                : product.imageAsset != null && product.imageAsset!.isNotEmpty
+                ? Image.asset(
+                    product.imageAsset!,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.image_not_supported_outlined,

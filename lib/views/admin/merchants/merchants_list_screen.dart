@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../controllers/admin_controller.dart';
 import 'create_merchant_screen.dart';
@@ -175,16 +175,16 @@ class MerchantsListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: AdminController().getMerchantsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final merchants = snapshot.data ?? [];
 
-          if (docs.isEmpty) {
+          if (merchants.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -211,13 +211,13 @@ class MerchantsListScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
+            itemCount: merchants.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final data = docs[i].data() as Map<String, dynamic>;
-              final uid = docs[i].id;
+              final data = merchants[i];
+              final uid = data['id'].toString();
               final email = data['email'] ?? '—';
-              final isFirst = data['premiereConnexion'] ?? true;
+              final isFirst = data['premiere_connexion'] ?? true;
 
               return Container(
                 decoration: BoxDecoration(

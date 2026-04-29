@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class CategoryModel {
   final String id;
@@ -20,25 +20,25 @@ class CategoryModel {
   factory CategoryModel.fromMap(Map<String, dynamic> map, String documentId) {
     return CategoryModel(
       id: documentId,
-      labelKey: map['labelKey'] ?? '',
+      labelKey: map['label_key'] ?? '',
       name: map['name'],
       icon: IconData(
-        map['iconCodePoint'] ?? 0xe000,
-        fontFamily: map['iconFontFamily'] ?? 'MaterialIcons',
+        map['icon_code_point'] ?? 0xe000,
+        fontFamily: map['icon_font_family'] ?? 'MaterialIcons',
       ),
-      imageUrl: map['imageUrl'],
-      imageAsset: map['imageAsset'],
+      imageUrl: map['image_url'],
+      imageAsset: map['image_asset'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'labelKey': labelKey,
+      'label_key': labelKey,
       'name': name,
-      'iconCodePoint': icon.codePoint,
-      'iconFontFamily': icon.fontFamily,
-      'imageUrl': imageUrl,
-      'imageAsset': imageAsset,
+      'icon_code_point': icon.codePoint,
+      'icon_font_family': icon.fontFamily,
+      'image_url': imageUrl,
+      'image_asset': imageAsset,
     };
   }
 }

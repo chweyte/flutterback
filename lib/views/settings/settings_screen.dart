@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../controllers/route_transitions.dart';
@@ -18,9 +18,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final username =
-        user?.displayName ?? user?.email?.split('@').first ?? 'User';
+    final user = Supabase.instance.client.auth.currentUser;
+    final username = user?.email?.split('@').first ?? 'User';
 
     return Scaffold(
       backgroundColor: AppColors.background,
