@@ -124,7 +124,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         // If we don't have auth data yet, we default to the most likely screen
         // rather than showing a jarring loading spinner.
         final user = authSnapshot.data;
-        
+
         if (user == null) {
           // If the stream is waiting and we have no data, we still show Login/Landing
           // to avoid a black screen or spinner flicker.
@@ -145,7 +145,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           builder: (context, roleSnapshot) {
             // Even for roles, we avoid a full-page spinner if possible.
             // But role check is usually necessary before showing Home.
-            if (roleSnapshot.connectionState == ConnectionState.waiting && !roleSnapshot.hasData) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting &&
+                !roleSnapshot.hasData) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
@@ -159,7 +160,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
             if (user.emailVerified) {
               return const ClientHome();
             }
-            
+
             // If not verified, stay on Login (which handles verification states)
             // instead of jumping back to Landing.
             return const LoginScreen();
@@ -169,6 +170,3 @@ class _AuthWrapperState extends State<AuthWrapper> {
     );
   }
 }
-
-
-
