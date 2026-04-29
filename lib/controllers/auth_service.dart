@@ -17,34 +17,65 @@ class AuthService {
 
   // Connexion Admin
   Future<String?> loginAdmin(String email, String password) async {
-    if (email == 'admin@gmail.com' && password == 'adminadmin') {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_role', 'admin');
-      return 'admin';
+    try {
+      // 1. Authentification via Firebase Auth
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // 2. Vérifier si l'utilisateur est bien dans la collection 'admins'
+      DocumentSnapshot adminDoc = await _db.collection('admins').doc(result.user!.uid).get();
+      
+      // Alternative : si l'admin est identifié par email dans Firestore
+      if (!adminDoc.exists) {
+        QuerySnapshot query = await _db
+            .collection('admins')
+            .where('email', isEqualTo: email)
+            .get();
+        if (query.docs.isNotEmpty) {
+          adminDoc = query.docs.first;
+        }
+      }
+
+      if (adminDoc.exists) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_role', 'admin');
+        return 'admin';
+      } else {
+        await _auth.signOut();
+        return null;
+      }
+    } catch (e) {
+      print('=== ERREUR LOGIN ADMIN === : $e');
+      return null;
     }
-    return null;
   }
 
-  // Connexion CommerÃƒÂ§ant
+  // Connexion Commerçant
   Future<Commercant?> loginCommercant(String email, String password) async {
     try {
-      QuerySnapshot query = await _db
-          .collection('commercants')
-          .where('email', isEqualTo: email)
-          .where('code', isEqualTo: password)
-          .get();
+      // 1. Authentification via Firebase Auth
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (query.docs.isNotEmpty) {
+      // 2. Récupérer les infos dans Firestore
+      DocumentSnapshot doc = await _db.collection('commercants').doc(result.user!.uid).get();
+
+      if (doc.exists) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_role', 'commercant');
-        await prefs.setString('user_id', query.docs.first.id);
+        await prefs.setString('user_id', doc.id);
         
-        // Charger la boutique du commerçant
-        await MerchantService.instance.loadMerchantShop(query.docs.first.id);
+        await MerchantService.instance.loadMerchantShop(doc.id);
         
-        return Commercant.fromMap(query.docs.first.id, query.docs.first.data() as Map<String, dynamic>);
+        return Commercant.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+      } else {
+        await _auth.signOut();
+        return null;
       }
-      return null;
     } catch (e) {
       print('=== ERREUR LOGIN COMMERCANT === : $e');
       return null;

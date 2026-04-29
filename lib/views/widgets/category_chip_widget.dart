@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -82,10 +83,19 @@ class CategoryChipWidget extends StatelessWidget {
   Widget _buildImage() {
     // PrioritÃƒÂ© : asset local > URL rÃƒÂ©seau
     if (category.imageAsset != null) {
+      // First try to load as a bundled asset
+      // Then fallback to loading as a local file (for newly added assets during dev)
+      final localFile = File('c:\\Users\\kaber\\Downloads\\flutterback\\${category.imageAsset}');
+      
       return Image.asset(
         category.imageAsset!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _iconFallback(),
+        errorBuilder: (context, error, stackTrace) {
+          if (localFile.existsSync()) {
+            return Image.file(localFile, fit: BoxFit.cover);
+          }
+          return _iconFallback();
+        },
       );
     }
     return Image.network(
