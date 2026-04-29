@@ -112,7 +112,7 @@ class AuthService {
     try {
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        // redirectTo: 'io.supabase.flutter://login-callback', // Set this in Supabase dashboard
+        redirectTo: 'io.supabase.flutter://login-callback',
       );
     } catch (e) {
       print('=== ERREUR GOOGLE SIGNIN === : $e');
@@ -248,4 +248,4 @@ class AuthService {
       });
     }
   }
-}
+}
