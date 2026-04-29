@@ -88,6 +88,11 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _loading = true);
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
+    if (password.length < 6) {
+      _showToast('Password must be at least 6 characters.', ToastificationType.warning);
+      setState(() => _loading = false);
+      return;
+    }
 
     // 1. Check if we currently have an unverified session
     final user = Supabase.instance.client.auth.currentUser;
@@ -123,6 +128,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (errorMsg.contains('User already registered')) {
         errorMsg = "Email is already in use. Please go to Login.";
+      } else if (errorMsg.contains('Password should be at least 6 characters')) {
+        errorMsg = "Password is too weak. It must be at least 6 characters.";
       }
       _showToast('Erreur : $errorMsg', ToastificationType.error);
     }
@@ -673,7 +680,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             !_isValidEmail(
                                               _emailController.text.trim(),
                                             ) ||
-                                            _passwordController.text.isEmpty)
+                                            _passwordController.text.length < 6)
                                         ? 0.5
                                         : 1.0,
                                   ),
@@ -682,7 +689,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             !_isValidEmail(
                                               _emailController.text.trim(),
                                             ) ||
-                                            _passwordController.text.isEmpty)
+                                            _passwordController.text.length < 6)
                                         ? 0.5
                                         : 1.0,
                                   ),
@@ -698,7 +705,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       !_isValidEmail(
                                         _emailController.text.trim(),
                                       ) ||
-                                      _passwordController.text.isEmpty)
+                                      _passwordController.text.length < 6)
                                   ? null
                                   : _signup,
                               style: ElevatedButton.styleFrom(

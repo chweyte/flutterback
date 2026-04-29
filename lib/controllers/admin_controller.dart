@@ -29,6 +29,9 @@ class AdminController {
     String? nationalityCardFrontUrl,
     String? nationalityCardBackUrl,
   }) async {
+    if (password.length < 6) {
+      throw Exception('Password must be at least 6 characters.');
+    }
     try {
       final adminClient = _adminClient;
       User? user;
