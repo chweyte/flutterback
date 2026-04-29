@@ -26,7 +26,7 @@ class _SearchScreenState extends State<SearchScreen> {
     var list = _selectedCategory == 0
         ? context.watch<ProductService>().all
         : context.watch<ProductService>().all
-            .where((p) => p.category == context.watch<CategoryService>().all[_selectedCategory].id)
+        .where((p) => p.categoryId == context.watch<CategoryService>().all[_selectedCategory].id)
             .toList();
     if (_query.isNotEmpty) {
       list = list

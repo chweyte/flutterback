@@ -39,7 +39,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       .all
       .where(
         (p) =>
-            p.category == widget.product.category && p.id != widget.product.id,
+            p.categoryId == widget.product.categoryId && p.id != widget.product.id,
       )
       .take(6)
       .toList();
@@ -508,13 +508,6 @@ class _ProductImage extends StatelessWidget {
         errorBuilder: (_, __, ___) => _imgFallback(),
       );
     }
-    if (product.imageAsset != null && product.imageAsset!.isNotEmpty) {
-      return Image.asset(
-        product.imageAsset!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _imgFallback(),
-      );
-    }
     return _imgFallback();
   }
 
@@ -637,16 +630,6 @@ class _FullscreenImage extends StatelessWidget {
             child: product.imageUrl != null && product.imageUrl!.isNotEmpty
                 ? Image.network(
                     product.imageUrl!,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.image_not_supported_outlined,
-                      color: Colors.white54,
-                      size: 60,
-                    ),
-                  )
-                : product.imageAsset != null && product.imageAsset!.isNotEmpty
-                ? Image.asset(
-                    product.imageAsset!,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.image_not_supported_outlined,

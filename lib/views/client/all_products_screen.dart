@@ -23,7 +23,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     return context
         .watch<ProductService>()
         .all
-        .where((p) => p.category == _selectedCategory)
+        .where((p) => p.categoryId.toString() == _selectedCategory)
         .toList();
   }
 
@@ -32,7 +32,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     final seen = <String>{};
     final result = <String>['all'];
     for (final p in context.watch<ProductService>().all) {
-      if (seen.add(p.category)) result.add(p.category);
+      if (seen.add(p.categoryId.toString())) result.add(p.categoryId.toString());
     }
     return result;
   }

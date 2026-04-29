@@ -238,13 +238,6 @@ class _ShopImage extends StatelessWidget {
         errorBuilder: (_, __, ___) => _LogoPlaceholder(name: shop.name),
       );
     }
-    if (shop.imageAsset != null && shop.imageAsset!.isNotEmpty) {
-      return Image.asset(
-        shop.imageAsset!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _LogoPlaceholder(name: shop.name),
-      );
-    }
     return _LogoPlaceholder(name: shop.name);
   }
 }

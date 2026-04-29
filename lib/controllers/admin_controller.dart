@@ -23,47 +23,47 @@ class AdminController {
   Future<bool> createMerchant({
     required String email,
     required String password,
+    String? fullname,
+    String? telephone,
+    String? nationalityId,
+    String? nationalityCardFrontUrl,
+    String? nationalityCardBackUrl,
   }) async {
     try {
       final adminClient = _adminClient;
       User? user;
 
+      final metadata = {
+        'role': 'commercant',
+        'fullname': fullname ?? '',
+        'telephone': telephone ?? '',
+        'nationality_id': nationalityId ?? '',
+        'nationality_card_front_url': nationalityCardFrontUrl ?? '',
+        'nationality_card_back_url': nationalityCardBackUrl ?? '',
+      };
+
       if (adminClient != null) {
-        // Use Admin API to create user without signing them in
+        // Use Admin API to create user with metadata
         final resp = await adminClient.auth.admin.createUser(
           AdminUserAttributes(
             email: email,
             password: password,
             emailConfirm: true,
+            userMetadata: metadata,
           ),
         );
         user = resp.user;
       } else {
-        // Fallback to standard signUp (might sign in the new user)
+        // Fallback to standard signUp
         final response = await _supabase.auth.signUp(
           email: email,
           password: password,
+          data: metadata,
         );
         user = response.user;
       }
 
       if (user == null) return false;
-
-      final commercant = Commercant(
-        id: user.id,
-        email: email,
-        code: password,
-        premiereConnexion: true,
-      );
-
-      await _supabase.from('commercants').insert(commercant.toMap());
-      
-      // Also set role in profiles
-      await _supabase.from('profiles').insert({
-        'id': user.id,
-        'email': email,
-        'role': 'commercant',
-      });
 
       return true;
     } catch (e) {
@@ -77,7 +77,10 @@ class AdminController {
   }
 
   Future<void> updateMerchantEmail(String uid, String newEmail) async {
-    await _supabase.from('commercants').update({'email': newEmail}).eq('id', uid);
+    await _supabase
+        .from('commercants')
+        .update({'email': newEmail})
+        .eq('id', uid);
   }
 
   Future<void> deleteMerchant(String uid) async {
@@ -92,9 +95,13 @@ class AdminController {
     return _supabase.from('categories').stream(primaryKey: ['id']);
   }
 
-  Future<void> createCategory(String name, IconData icon, {File? imageFile}) async {
+  Future<void> createCategory(
+    String name,
+    IconData icon, {
+    File? imageFile,
+  }) async {
     String? imageUrl;
-    
+
     if (imageFile != null) {
       imageUrl = await StorageService.instance.uploadImage(
         bucket: 'categories',
@@ -112,7 +119,12 @@ class AdminController {
     });
   }
 
-  Future<void> updateCategory(String id, String name, IconData icon, {File? imageFile}) async {
+  Future<void> updateCategory(
+    String id,
+    String name,
+    IconData icon, {
+    File? imageFile,
+  }) async {
     Map<String, dynamic> data = {
       'name': name,
       'label_key': name.toLowerCase().replaceAll(' ', '_'),

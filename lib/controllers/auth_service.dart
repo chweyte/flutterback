@@ -147,10 +147,14 @@ class AuthService {
     }
   }
 
-  // Changer le code du commerçant
+
+  // Changer le code (mot de passe) du commerÃ§ant
   Future<void> changerCodeCommercant(String id, String nouveauCode) async {
+    // Mettre Ã  jour le mot de passe dans Supabase Auth
+    await _supabase.auth.updateUser(UserAttributes(password: nouveauCode));
+    
+    // Marquer la premiÃ¨re connexion comme effectuÃ©e
     await _supabase.from('commercants').update({
-      'code': nouveauCode,
       'premiere_connexion': false,
     }).eq('id', id);
   }
@@ -167,6 +171,7 @@ class AuthService {
         email: email,
         password: password,
         data: {
+          'role': 'client',
           'fullname': fullname,
           'telephone': telephone ?? '',
         },
@@ -240,9 +245,6 @@ class AuthService {
       // Insert in clients
       await _supabase.from('clients').upsert({
         'id': uid,
-        'email': email,
-        'fullname': fullname,
-        'telephone': '',
       });
     }
   }

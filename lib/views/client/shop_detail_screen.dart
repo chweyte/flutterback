@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../models/commerce/shop_model.dart';
 import '../../models/commerce/product_model.dart';
+import '../../controllers/category_service.dart';
+import '../../models/commerce/category_model.dart';
 import '../../core/theme/app_colors.dart';
 import '../../views/widgets/product_card_widget.dart';
 
@@ -113,9 +115,20 @@ class ShopDetailScreen extends StatelessWidget {
                       _StatBadge(
                         icon: Icons.store_outlined,
                         iconColor: AppColors.primary,
-                        label:
-                            shop.categoryTitle ??
-                            'categories_list.${shop.category}'.tr(),
+                        label: shop.categoryIds.isNotEmpty
+                            ? context
+                                  .read<CategoryService>()
+                                  .all
+                                  .firstWhere(
+                                    (c) => c.id == shop.categoryIds.first,
+                                    orElse: () => CategoryModel(
+                                      id: 0,
+                                      name: 'Unknown',
+                                      labelKey: 'unknown',
+                                    ),
+                                  )
+                                  .name
+                            : 'no_category'.tr(),
                       ),
                       SizedBox(width: 10.w),
                       // Produits
@@ -192,13 +205,6 @@ class _ShopCover extends StatelessWidget {
     if (shop.imageUrl != null && shop.imageUrl!.isNotEmpty) {
       return Image.network(
         shop.imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _placeholder(),
-      );
-    }
-    if (shop.imageAsset != null && shop.imageAsset!.isNotEmpty) {
-      return Image.asset(
-        shop.imageAsset!,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _placeholder(),
       );

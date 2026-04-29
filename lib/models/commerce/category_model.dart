@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class CategoryModel {
-  final String id;
+  final int id;
   final String labelKey;
   final String? name;
   final IconData icon;
-  final String? imageUrl; // URL réseau
+  final String? imageUrl; // URL rÃ©seau
   final String? imageAsset; // fichier local dans assets/
 
   const CategoryModel({
@@ -19,7 +19,7 @@ class CategoryModel {
 
   factory CategoryModel.fromMap(Map<String, dynamic> map, String documentId) {
     return CategoryModel(
-      id: documentId,
+      id: int.tryParse(documentId) ?? 0,
       labelKey: map['label_key'] ?? '',
       name: map['name'],
       icon: IconData(

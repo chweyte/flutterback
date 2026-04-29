@@ -125,7 +125,7 @@ class _HomeViewState extends State<_HomeView> {
   List<ProductModel> get _visibleProducts {
     if (_selectedCategory == 0) return context.watch<ProductService>().all;
     final catId = context.watch<CategoryService>().all[_selectedCategory].id;
-    return context.watch<ProductService>().all.where((p) => p.category == catId).toList();
+    return context.watch<ProductService>().all.where((p) => p.categoryId == catId).toList();
   }
 
   @override
@@ -687,13 +687,6 @@ Widget _shopImage(ShopModel shop) {
   if (shop.imageUrl != null && shop.imageUrl!.isNotEmpty) {
     return Image.network(
       shop.imageUrl!,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name),
-    );
-  }
-  if (shop.imageAsset != null && shop.imageAsset!.isNotEmpty) {
-    return Image.asset(
-      shop.imageAsset!,
       fit: BoxFit.cover,
       errorBuilder: (_, __, ___) => _ShopAvatar(name: shop.name),
     );

@@ -5,9 +5,7 @@ class ProductModel {
   final int priceValue;
   final bool isDark;
   final String? imageUrl;
-  final String? imageAsset;
-  final String category;
-  final String? categoryTitle;
+  final int? categoryId;
   final List<String>? sizes;
   final String shopId;
 
@@ -18,9 +16,7 @@ class ProductModel {
     required this.priceValue,
     this.isDark = false,
     this.imageUrl,
-    this.imageAsset,
-    required this.category,
-    this.categoryTitle,
+    this.categoryId,
     this.sizes,
     required this.shopId,
   });
@@ -33,9 +29,7 @@ class ProductModel {
       priceValue: map['price_value'] ?? 0,
       isDark: map['is_dark'] ?? false,
       imageUrl: map['image_url'],
-      imageAsset: map['image_asset'],
-      category: map['category'] ?? '',
-      categoryTitle: map['category_title'],
+      categoryId: map['category_id'],
       sizes: map['sizes'] != null ? List<String>.from(map['sizes']) : null,
       shopId: map['shop_id'] ?? '',
     );
@@ -48,9 +42,7 @@ class ProductModel {
       'price_value': priceValue,
       'is_dark': isDark,
       'image_url': imageUrl,
-      'image_asset': imageAsset,
-      'category': category,
-      'category_title': categoryTitle,
+      'category_id': categoryId,
       'sizes': sizes,
       'shop_id': shopId,
     };

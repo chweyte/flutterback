@@ -47,6 +47,6 @@ class ProductService extends ChangeNotifier {
   List<ProductModel> byShop(String shopId) =>
       _products.where((p) => p.shopId == shopId).toList();
 
-  List<ProductModel> byCategory(String categoryId) =>
-      _products.where((p) => p.category == categoryId).toList();
+  List<ProductModel> byCategory(int categoryId) =>
+      _products.where((p) => p.categoryId == categoryId).toList();
 }

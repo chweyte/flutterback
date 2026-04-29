@@ -67,13 +67,6 @@ class _ProductCardWidgetState extends State<ProductCardWidget> {
                           errorBuilder: (_, __, ___) =>
                               _Placeholder(isDark: isDark),
                         )
-                      else if (widget.product.imageAsset != null && widget.product.imageAsset!.isNotEmpty)
-                        Image.asset(
-                          widget.product.imageAsset!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              _Placeholder(isDark: isDark),
-                        )
                       else
                         _Placeholder(isDark: isDark),
 
