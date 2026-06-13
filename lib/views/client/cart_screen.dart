@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_colors.dart';
 import '../../controllers/cart_service.dart';
+import '../../views/widgets/circular_back_button.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -23,6 +24,7 @@ class CartScreen extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
                   child: Row(
                     children: [
+                      const CircularBackButton(),
                       Text(
                         'my_cart'.tr(),
                         style: TextStyle(

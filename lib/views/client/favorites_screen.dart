@@ -5,6 +5,7 @@ import '../../models/commerce/product_model.dart';
 import '../../core/theme/app_colors.dart';
 import '../../controllers/favorites_service.dart';
 import '../../views/widgets/product_card_widget.dart';
+import '../../views/widgets/circular_back_button.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -21,6 +22,7 @@ class FavoritesScreen extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
               child: Row(
                 children: [
+                  const CircularBackButton(),
                   Text(
                     'favorites'.tr(),
                     style: TextStyle(

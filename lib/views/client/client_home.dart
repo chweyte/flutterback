@@ -35,34 +35,20 @@ class ClientHome extends StatefulWidget {
 
 class _ClientHomeState extends State<ClientHome> {
   int _navIndex = 0;
-  late PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _navIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   void _onNavTap(int i) {
-    if ((i - _navIndex).abs() > 1) {
-      _pageController.jumpToPage(i);
-    } else {
-      _pageController.animateToPage(
-        i,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutQuart,
+    if (i == 0) return;
+    if (i == 1) {
+      Navigator.push(
+        context,
+        SlidePageRoute(page: const FavoritesScreen()),
+      );
+    } else if (i == 2) {
+      Navigator.push(
+        context,
+        SlidePageRoute(page: const CartScreen()),
       );
     }
-  }
-
-  void _onPageChanged(int i) {
-    setState(() => _navIndex = i);
   }
 
   @override
@@ -72,19 +58,7 @@ class _ClientHomeState extends State<ClientHome> {
       body: SafeArea(
         child: Stack(
           children: [
-            PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              physics: const ClampingScrollPhysics(),
-              dragStartBehavior: DragStartBehavior.down,
-              children: const [
-                _HomeView(),
-                SearchScreen(),
-                FavoritesScreen(),
-                NotificationsScreen(),
-                CartScreen(),
-              ],
-            ),
+            const _HomeView(),
             Positioned(
               bottom: 0,
               left: 0,
@@ -116,6 +90,7 @@ class _HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<_HomeView> {
   int _selectedCategory = 0;
+  String _searchQuery = '';
 
   String get _username {
     final u = Supabase.instance.client.auth.currentUser;
@@ -123,67 +98,105 @@ class _HomeViewState extends State<_HomeView> {
   }
 
   List<ProductModel> get _visibleProducts {
-    if (_selectedCategory == 0) return context.watch<ProductService>().all;
-    final catId = context.watch<CategoryService>().all[_selectedCategory].id;
-    return context.watch<ProductService>().all.where((p) => p.categoryId == catId).toList();
+    var list = context.watch<ProductService>().all;
+    if (_selectedCategory > 0) {
+      final catId = context.watch<CategoryService>().all[_selectedCategory].id;
+      list = list.where((p) => p.categoryId == catId).toList();
+    }
+    if (_searchQuery.isNotEmpty) {
+      list = list
+          .where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
+    }
+    return list;
   }
 
   @override
   Widget build(BuildContext context) {
     final products = _visibleProducts;
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: _Header(username: _username),
-        ),
-        SliverToBoxAdapter(child: _SearchSection()),
-        SliverToBoxAdapter(
-          child: _CategoryRow(
-            selectedIndex: _selectedCategory,
-            onSelect: (i) => setState(() => _selectedCategory = i),
-            onSeeAll: () => Navigator.push(
-              context,
-              SlidePageRoute(page: const AllCategoriesScreen()),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await Future.wait([
+          ShopService.instance.refresh(),
+          ProductService.instance.refresh(),
+        ]);
+      },
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _Header(username: _username),
+          ),
+          SliverToBoxAdapter(
+            child: _SearchSection(
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
             ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: _ShopsRow(
-            onSeeAll: () => Navigator.push(
-              context,
-              SlidePageRoute(page: const ShopsScreen()),
-            ),
-            onShopTap: (shop) => Navigator.push(
-              context,
-              SlidePageRoute(page: ShopDetailScreen(shop: shop)),
+          SliverToBoxAdapter(
+            child: _CategoryRow(
+              selectedIndex: _selectedCategory,
+              onSelect: (i) => setState(() => _selectedCategory = i),
+              onSeeAll: () => Navigator.push(
+                context,
+                SlidePageRoute(page: const AllCategoriesScreen()),
+              ),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
-              childAspectRatio: 0.78,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (ctx, i) => ProductCardWidget(product: products[i]),
-              childCount: products.length,
+          SliverToBoxAdapter(
+            child: _ShopsRow(
+              onSeeAll: () => Navigator.push(
+                context,
+                SlidePageRoute(page: const ShopsScreen()),
+              ),
+              onShopTap: (shop) => Navigator.push(
+                context,
+                SlidePageRoute(page: ShopDetailScreen(shop: shop)),
+              ),
             ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: _ExploreMoreButton(
-            onTap: () => Navigator.push(
-              context,
-              SlidePageRoute(page: const AllProductsScreen()),
+          if (products.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40.h),
+                  child: Text(
+                    'no_products_found'.tr(),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12.w,
+                  mainAxisSpacing: 12.h,
+                  childAspectRatio: 0.78,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (ctx, i) => ProductCardWidget(product: products[i]),
+                  childCount: products.length,
+                ),
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: _ExploreMoreButton(
+              onTap: () => Navigator.push(
+                context,
+                SlidePageRoute(page: const AllProductsScreen()),
+              ),
             ),
           ),
-        ),
-        SliverToBoxAdapter(child: SizedBox(height: 90.h)),
-      ],
+          SliverToBoxAdapter(child: SizedBox(height: 90.h)),
+        ],
+      ),
     );
   }
 }
@@ -239,14 +252,6 @@ class _Header extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-          _HeaderIconBtn(
-            icon: Icons.notifications_none_rounded,
-            hasBadge: true,
-            onTap: () => Navigator.push(
-              context,
-              SlidePageRoute(page: const NotificationsScreen()),
             ),
           ),
         ],
@@ -305,6 +310,9 @@ class _HeaderIconBtn extends StatelessWidget {
 // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
 
 class _SearchSection extends StatelessWidget {
+  final ValueChanged<String>? onChanged;
+  const _SearchSection({super.key, this.onChanged});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -348,6 +356,7 @@ class _SearchSection extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: TextField(
+                    onChanged: onChanged,
                     decoration: InputDecoration(
                       hintText: 'search_placeholder'.tr(),
                       hintStyle: TextStyle(
@@ -359,16 +368,6 @@ class _SearchSection extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(6.r),
-                  padding: EdgeInsets.all(8.r),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(Icons.tune_rounded,
-                      color: Colors.white, size: 16.r),
                 ),
               ],
             ),
@@ -607,10 +606,13 @@ class _ShopsRowState extends State<_ShopsRow> {
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.only(right: 4.w),
                   itemCount: context.watch<ShopService>().all.length,
-                  itemBuilder: (ctx, i) => _ShopChip(
-                    shop: context.watch<ShopService>().all[i],
-                    onTap: () => widget.onShopTap(context.watch<ShopService>().all[i]),
-                  ),
+                  itemBuilder: (ctx, i) {
+                    final shop = context.watch<ShopService>().all[i];
+                    return _ShopChip(
+                      shop: shop,
+                      onTap: () => widget.onShopTap(shop),
+                    );
+                  },
                 ),
               ),
             ),
@@ -647,6 +649,7 @@ class _ShopChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
         width: 80.w,
         margin: EdgeInsets.only(right: 12.w),

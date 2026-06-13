@@ -20,16 +20,12 @@ class BottomNavWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final labels = [
       'home'.tr(),
-      'search'.tr(),
       'favorites'.tr(),
-      'notifications'.tr(),
-      'Mon Panier',
+      'my_cart'.tr(),
     ];
     const icons = [
       Icons.home_rounded,
-      Icons.search_rounded,
       Icons.favorite_border_rounded,
-      Icons.notifications_none_rounded,
       Icons.shopping_bag_outlined,
     ];
 
@@ -48,11 +44,11 @@ class BottomNavWidget extends StatelessWidget {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(5, (i) {
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(3, (i) {
           final isActive = i == currentIndex;
           // Cart badge
-          final showBadge = i == 4 && cartCount > 0;
+          final showBadge = i == 2 && cartCount > 0;
           return GestureDetector(
             onTap: () => onTap(i),
             behavior: HitTestBehavior.opaque,

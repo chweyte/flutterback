@@ -117,7 +117,7 @@ class ShopDetailScreen extends StatelessWidget {
                         iconColor: AppColors.primary,
                         label: shop.categoryIds.isNotEmpty
                             ? context
-                                .read<CategoryService>()
+                                .watch<CategoryService>()
                                 .all
                                 .firstWhere(
                                   (c) => c.id == shop.categoryIds.first,
@@ -226,8 +226,12 @@ class _ShopCover extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ajoutez la photo de ${shop.name}',
-            style: const TextStyle(color: Colors.white60, fontSize: 13),
+            shop.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

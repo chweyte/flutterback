@@ -16,6 +16,8 @@ class ShopService extends ChangeNotifier {
     if (_isInit) return;
     _isInit = true;
     
+    refresh();
+
     Supabase.instance.client
         .from('shops')
         .stream(primaryKey: ['id'])
@@ -23,7 +25,20 @@ class ShopService extends ChangeNotifier {
       _shops = data.map((map) => ShopModel.fromMap(map, map['id'].toString())).toList();
       isLoading = false;
       notifyListeners();
+    }, onError: (e) {
+      print('=== SHOPS STREAM ERROR === : $e');
     });
+  }
+
+  Future<void> refresh() async {
+    try {
+      final data = await Supabase.instance.client.from('shops').select();
+      _shops = data.map((map) => ShopModel.fromMap(map, map['id'].toString())).toList();
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print('=== ERROR REFRESHING SHOPS === : $e');
+    }
   }
 
   Future<void> addShop(ShopModel shop) async {

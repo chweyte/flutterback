@@ -67,5 +67,28 @@
     "phones": "هواتف",
     "home_decor": "المنزل",
     "sports": "رياضة"
+  },
+  "admin_categories": {
+    "edit_category": "تعديل الفئة",
+    "new_category": "فئة جديدة",
+    "category_photo": "صورة الفئة",
+    "name": "الاسم",
+    "name_hint": "مثال: بقالة",
+    "icon": "أيقونة",
+    "name_required": "الاسم مطلوب.",
+    "category_updated": "تم تحديث الفئة.",
+    "category_created": "تم إنشاء الفئة.",
+    "error": "خطأ: {}",
+    "save_changes": "حفظ التغييرات",
+    "create_category": "إنشاء الفئة",
+    "delete_category": "حذف الفئة",
+    "delete_confirm": "هل تريد حذف \"{}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "category_deleted": "تم حذف الفئة.",
+    "delete_failed": "فشل الحذف.",
+    "tap_choose_photo": "انقر لاختيار صورة",
+    "no_categories_yet": "لا توجد فئات حتى الآن",
+    "tap_add_category": "انقر على + لإضافة أول فئة لك"
   }
 }

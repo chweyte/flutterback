@@ -89,40 +89,12 @@ class SettingsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.primary,
-                    size: 24.r,
-                  ),
                 ],
               ),
             ),
             SizedBox(height: 30.h),
 
-            // Orders & Addresses Section
-            Text(
-              'my_account'.tr(),
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(height: 12.h),
-            _buildActionTile(
-              icon: Icons.shopping_bag_outlined,
-              title: 'my_orders'.tr(),
-            ),
-            _buildActionTile(
-              icon: Icons.location_on_outlined,
-              title: 'shipping_addresses'.tr(),
-            ),
-            _buildActionTile(
-              icon: Icons.payment_outlined,
-              title: 'payment_methods'.tr(),
-            ),
-            SizedBox(height: 24.h),
+
 
             // Language section
             Text(
@@ -188,36 +160,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionTile({required IconData icon, required String title}) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 22.r),
-          SizedBox(width: 14.w),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const Spacer(),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: AppColors.textLight,
-            size: 16.r,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _LanguageTile extends StatelessWidget {

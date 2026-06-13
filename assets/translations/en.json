@@ -67,5 +67,28 @@
     "phones": "Phones",
     "home_decor": "Home",
     "sports": "Sports"
+  },
+  "admin_categories": {
+    "edit_category": "Edit Category",
+    "new_category": "New Category",
+    "category_photo": "Category Photo",
+    "name": "Name",
+    "name_hint": "e.g. Grocery",
+    "icon": "Icon",
+    "name_required": "Name is required.",
+    "category_updated": "Category updated.",
+    "category_created": "Category created.",
+    "error": "Error: {}",
+    "save_changes": "Save Changes",
+    "create_category": "Create Category",
+    "delete_category": "Delete Category",
+    "delete_confirm": "Delete \"{}\"? This cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "category_deleted": "Category deleted.",
+    "delete_failed": "Failed to delete.",
+    "tap_choose_photo": "Tap to choose a photo",
+    "no_categories_yet": "No categories yet",
+    "tap_add_category": "Tap + to add your first category"
   }
 }

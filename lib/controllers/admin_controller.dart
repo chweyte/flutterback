@@ -95,7 +95,7 @@ class AdminController {
   // ─── Categories ─────────────────────────────────────────────────────────────
 
   Stream<List<Map<String, dynamic>>> getCategoriesStream() {
-    return _supabase.from('categories').stream(primaryKey: ['id']);
+    return (_adminClient ?? _supabase).from('categories').stream(primaryKey: ['id']);
   }
 
   Future<void> createCategory(
@@ -110,16 +110,22 @@ class AdminController {
         bucket: 'categories',
         file: imageFile,
         folder: 'icons',
+        client: _adminClient,
       );
     }
 
-    await _supabase.from('categories').insert({
+    final data = {
       'name': name,
       'label_key': name.toLowerCase().replaceAll(' ', '_'),
       'icon_code_point': icon.codePoint,
       'icon_font_family': icon.fontFamily ?? 'MaterialIcons',
-      'image_url': imageUrl,
-    });
+    };
+
+    if (imageUrl != null) {
+      data['image_url'] = imageUrl;
+    }
+
+    await (_adminClient ?? _supabase).from('categories').insert(data);
   }
 
   Future<void> updateCategory(
@@ -140,16 +146,17 @@ class AdminController {
         bucket: 'categories',
         file: imageFile,
         folder: 'icons',
+        client: _adminClient,
       );
       if (imageUrl != null) {
         data['image_url'] = imageUrl;
       }
     }
 
-    await _supabase.from('categories').update(data).eq('id', id);
+    await (_adminClient ?? _supabase).from('categories').update(data).eq('id', id);
   }
 
   Future<void> deleteCategory(String id) async {
-    await _supabase.from('categories').delete().eq('id', id);
+    await (_adminClient ?? _supabase).from('categories').delete().eq('id', id);
   }
 }

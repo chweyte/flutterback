@@ -67,5 +67,28 @@
     "phones": "Téléphones",
     "home_decor": "Maison",
     "sports": "Sport"
+  },
+  "admin_categories": {
+    "edit_category": "Modifier la catégorie",
+    "new_category": "Nouvelle catégorie",
+    "category_photo": "Photo de la catégorie",
+    "name": "Nom",
+    "name_hint": "ex: Épicerie",
+    "icon": "Icône",
+    "name_required": "Le nom est requis.",
+    "category_updated": "Catégorie mise à jour.",
+    "category_created": "Catégorie créée.",
+    "error": "Erreur : {}",
+    "save_changes": "Enregistrer",
+    "create_category": "Créer la catégorie",
+    "delete_category": "Supprimer la catégorie",
+    "delete_confirm": "Supprimer \"{}\" ? Cette action est irréversible.",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "category_deleted": "Catégorie supprimée.",
+    "delete_failed": "Échec de la suppression.",
+    "tap_choose_photo": "Appuyez pour choisir une photo",
+    "no_categories_yet": "Aucune catégorie pour le moment",
+    "tap_add_category": "Appuyez sur + pour ajouter votre première catégorie"
   }
 }

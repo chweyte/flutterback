@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,6 +43,7 @@ class CategoriesScreen extends StatelessWidget {
     String? initialName,
     IconData? initialIcon,
     String? initialImageAsset,
+    String? initialImageUrl,
   }) {
     final nameController = TextEditingController(text: initialName ?? '');
     IconData selectedIcon = initialIcon ?? _iconOptions.first.$2;
@@ -55,9 +57,10 @@ class CategoriesScreen extends StatelessWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) => Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-            decoration: const BoxDecoration(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              decoration: const BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
@@ -78,7 +81,7 @@ class CategoriesScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  id != null ? 'Edit Category' : 'New Category',
+                  id != null ? 'admin_categories.edit_category'.tr() : 'admin_categories.new_category'.tr(),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -88,8 +91,8 @@ class CategoriesScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 // Photo picker
-                const Text(
-                  'Category Photo',
+                Text(
+                  'admin_categories.category_photo'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -117,18 +120,23 @@ class CategoriesScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(11),
                             child: Image.file(selectedImage!, fit: BoxFit.cover),
                           )
-                        : (initialImageAsset != null
+                        : (initialImageUrl != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(11),
-                                child: Image.asset(initialImageAsset, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder()),
+                                child: Image.network(initialImageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder()),
                               )
-                            : _buildPlaceholder()),
+                            : initialImageAsset != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(11),
+                                    child: Image.asset(initialImageAsset, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder()),
+                                  )
+                                : _buildPlaceholder()),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                const Text(
-                  'Name',
+                Text(
+                  'admin_categories.name'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -140,7 +148,7 @@ class CategoriesScreen extends StatelessWidget {
                   controller: nameController,
                   style: const TextStyle(color: AppColors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'e.g. Grocery',
+                    hintText: 'admin_categories.name_hint'.tr(),
                     hintStyle: const TextStyle(color: AppColors.textLight),
                     filled: true,
                     fillColor: AppColors.background,
@@ -155,8 +163,8 @@ class CategoriesScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Icon',
+                Text(
+                  'admin_categories.icon'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -204,7 +212,7 @@ class CategoriesScreen extends StatelessWidget {
                     onPressed: () async {
                       final name = nameController.text.trim();
                       if (name.isEmpty) {
-                        _showToast(context, 'Name is required.', ToastificationType.warning);
+                        _showToast(context, 'admin_categories.name_required'.tr(), ToastificationType.warning);
                         return;
                       }
                       try {
@@ -226,13 +234,14 @@ class CategoriesScreen extends StatelessWidget {
                         if (context.mounted) {
                           _showToast(
                             context,
-                            id != null ? 'Category updated.' : 'Category created.',
+                            id != null ? 'admin_categories.category_updated'.tr() : 'admin_categories.category_created'.tr(),
                             ToastificationType.success,
                           );
                         }
-                      } catch (e) {
+                      } catch (e, st) {
+                        print('CATEGORY CREATION ERROR: $e\n$st');
                         if (context.mounted) {
-                          _showToast(context, 'Operation failed.', ToastificationType.error);
+                          _showToast(context, 'admin_categories.error'.tr(args: [e.toString()]), ToastificationType.error);
                         }
                       }
                     },
@@ -244,7 +253,7 @@ class CategoriesScreen extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: Text(
-                      id != null ? 'Save Changes' : 'Create Category',
+                      id != null ? 'admin_categories.save_changes'.tr() : 'admin_categories.create_category'.tr(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -255,6 +264,7 @@ class CategoriesScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),
@@ -267,22 +277,22 @@ class CategoriesScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Category',
-          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        title: Text(
+          'admin_categories.delete_category'.tr(),
+          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Delete "$name"? This cannot be undone.',
+          'admin_categories.delete_confirm'.tr(args: [name]),
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('admin_categories.cancel'.tr(), style: const TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.accent)),
+            child: Text('admin_categories.delete'.tr(), style: const TextStyle(color: AppColors.accent)),
           ),
         ],
       ),
@@ -292,25 +302,25 @@ class CategoriesScreen extends StatelessWidget {
       try {
         await AdminController().deleteCategory(id);
         if (context.mounted) {
-          _showToast(context, 'Category deleted.', ToastificationType.success);
+          _showToast(context, 'admin_categories.category_deleted'.tr(), ToastificationType.success);
         }
       } catch (e) {
         if (context.mounted) {
-          _showToast(context, 'Failed to delete.', ToastificationType.error);
+          _showToast(context, 'admin_categories.delete_failed'.tr(), ToastificationType.error);
         }
       }
     }
   }
 
   Widget _buildPlaceholder() {
-    return const Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add_a_photo_outlined, color: AppColors.textLight, size: 32),
-        SizedBox(height: 8),
+        const Icon(Icons.add_a_photo_outlined, color: AppColors.textLight, size: 32),
+        const SizedBox(height: 8),
         Text(
-          'Tap to choose a photo',
-          style: TextStyle(color: AppColors.textLight, fontSize: 12),
+          'admin_categories.tap_choose_photo'.tr(),
+          style: const TextStyle(color: AppColors.textLight, fontSize: 12),
         ),
       ],
     );
@@ -336,17 +346,17 @@ class CategoriesScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.category_outlined, size: 64, color: AppColors.textLight),
                   const SizedBox(height: 16),
-                  const Text(
-                    'No categories yet',
-                    style: TextStyle(
+                  Text(
+                    'admin_categories.no_categories_yet'.tr(),
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Tap + to add your first category',
+                  Text(
+                    'admin_categories.tap_add_category'.tr(),
                     style: TextStyle(fontSize: 13, color: AppColors.textLight),
                   ),
                 ],
@@ -367,6 +377,7 @@ class CategoriesScreen extends StatelessWidget {
                 fontFamily: data['icon_font_family'] ?? 'MaterialIcons',
               );
               final imageAsset = data['image_asset'] as String?;
+              final imageUrl = data['image_url'] as String?;
 
               return Container(
                 decoration: BoxDecoration(
@@ -383,19 +394,25 @@ class CategoriesScreen extends StatelessWidget {
                       color: AppColors.primary.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: imageAsset != null
+                    child: imageUrl != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              imageAsset,
+                            child: Image.network(
+                              imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                // Try fallback for local preview
-                                return Icon(iconData, color: AppColors.primary, size: 22);
-                              },
+                              errorBuilder: (context, error, stackTrace) => Icon(iconData, color: AppColors.primary, size: 22),
                             ),
                           )
-                        : Icon(iconData, color: AppColors.primary, size: 22),
+                        : imageAsset != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  imageAsset,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Icon(iconData, color: AppColors.primary, size: 22),
+                                ),
+                              )
+                            : Icon(iconData, color: AppColors.primary, size: 22),
                   ),
                   title: Text(
                     name,
@@ -416,6 +433,7 @@ class CategoriesScreen extends StatelessWidget {
                           initialName: name,
                           initialIcon: iconData,
                           initialImageAsset: imageAsset,
+                          initialImageUrl: imageUrl,
                         ),
                       ),
                       IconButton(

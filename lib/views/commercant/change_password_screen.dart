@@ -28,16 +28,44 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       return;
     }
+    
+    // Supabase requires passwords to be at least 6 characters
+    if (_newCodeController.text.trim().length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le mot de passe doit comporter au moins 6 caractères'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
-    await _auth.changerCodeCommercant(
-      widget.commercantId,
-      _newCodeController.text.trim(),
-    );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => CommercantHome()),
-    );
-    setState(() => _loading = false);
+    try {
+      await _auth.changerCodeCommercant(
+        widget.commercantId,
+        _newCodeController.text.trim(),
+      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const CommercantHome()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   @override

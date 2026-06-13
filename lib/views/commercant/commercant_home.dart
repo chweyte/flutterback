@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../controllers/auth_service.dart';
 import '../../controllers/route_transitions.dart';
 import '../landing_screen.dart';
+import 'commercant_products_screen.dart';
+import 'commercant_shop_screen.dart';
 
 class CommercantHome extends StatefulWidget {
   const CommercantHome({super.key});
@@ -14,10 +16,8 @@ class _CommercantHomeState extends State<CommercantHome> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    _DashboardPlaceholder(),
-    _ProductsPlaceholder(),
-    _ShopPlaceholder(),
-    _ProfilePlaceholder(),
+    CommercantProductsScreen(),
+    CommercantShopScreen(),
   ];
 
   @override
@@ -44,10 +44,7 @@ class _CommercantHomeState extends State<CommercantHome> {
           )
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -60,20 +57,12 @@ class _CommercantHomeState extends State<CommercantHome> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_rounded),
-            label: 'Tableau',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.inventory_2_rounded),
             label: 'Produits',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.storefront_rounded),
             label: 'Boutique',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profil',
           ),
         ],
       ),
